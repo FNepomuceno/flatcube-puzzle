@@ -31,10 +31,10 @@ const Modder = function Modder() {
         // get rotation orientation
         let dimRotation = calcDimRotation(displayedDim, undisplayedDim,
             orientDirection);
-        let orientation = Util.cycleRotation(numDims, ...dimRotation);
+        let orientation = Util.axisRotation(numDims, ...dimRotation);
 
         // rotate cube
-        this.cube.orientation = Util.rotateOrientation(
+        this.cube.orientation = Orientation.compose(
             this.cube.orientation, orientation);
 
         // update visuals
@@ -48,7 +48,7 @@ const Modder = function Modder() {
         
         // generate cycle and orientation
         let dimRotation = calcDimRotation(dimA, dimB, direction);
-        let orientation = Util.cycleRotation(numDims, ...dimRotation);
+        let orientation = Util.axisRotation(numDims, ...dimRotation);
 
         return orientation;
     }
@@ -63,7 +63,7 @@ const Modder = function Modder() {
 
         let dstOrientation = sideOrientation(numDims, sidePicked);
         let twsOrientation = sideOrientation(numDims, twistSide);
-        let srcOrientation = Util.rotateOrientation(twsOrientation,
+        let srcOrientation = Orientation.compose(twsOrientation,
             dstOrientation);
 
         // get indices of pieces to rotate
@@ -71,20 +71,16 @@ const Modder = function Modder() {
             dstOrientation).indices;
         let srcIndices = new Square.SquareView(this.cube,
             srcOrientation).indices;
-        console.log(srcIndices, dstIndices, twsOrientation);
 
         // get pieces of cube
         let pieces = srcIndices.map(v => this.cube.pieces[v]);
-        console.log(pieces);
 
         // make the twist
         pieces.forEach((p, i) => {
-            let cubeOr = this.cube.orientation;
-            let antiOr = Util.invertOrientation(cubeOr);
-            let twist = Util.rotateOrientation(cubeOr, twsOrientation);
-            twist = Util.rotateOrientation(twist, antiOr);
+            let twist = Orientation.conjugate(this.cube.orientation,
+                twsOrientation);
 
-            p.orientation = Util.rotateOrientation(p.orientation, twist);
+            p.orientation = Orientation.compose(p.orientation, twist);
             this.cube.pieces[dstIndices[i]] = p;
         });
 
@@ -313,7 +309,6 @@ const Modder = function Modder() {
         };
     }
 
-    console.log('Modder Module loaded');
     return {
         GameController
     };

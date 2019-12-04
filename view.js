@@ -1,7 +1,7 @@
 const View = function View() {
     function extractStickers(sqr) {
         let stickers = sqr.pieces.map(p => {
-            let stickerOr = Util.rotateOrientation(
+            let stickerOr = Orientation.compose(
                 p.orientation, sqr.orientation);
             return p.stickers[stickerOr[0]]
         });

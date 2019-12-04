@@ -30,7 +30,7 @@ const Square = function Square() {
             orRotate = Array.from(Array(2*numDims)).map((_, i) => i);
         }
 
-        let orView = Util.rotateOrientation(cube.orientation, orRotate);
+        let orView = Orientation.compose(cube.orientation, orRotate);
         let {
             offsets, dimSides, dimSizes
         } = Util.profileDims(cube, orView);
