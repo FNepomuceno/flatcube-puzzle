@@ -8,6 +8,17 @@ const Modder = function Modder() {
         return { chosenDimensions, unchosenDimensions };
     }
 
+    function calcDimRotation(dimA, dimB, direction) {
+        return direction == 0? [dimA, dimB]: [dimB, dimA];
+    }
+
+    function updateVisuals() {
+        for({ view } of this.views) {
+            view.setCells();
+        }
+        setOptions.apply(this);
+    }
+
     function orientHandler() {
         let displayedDim = +this.inputs.chosenInputs.filter(elem =>
             elem.checked)[0].value;
@@ -17,34 +28,68 @@ const Modder = function Modder() {
             elem.checked)[0].value;
         let numDims = this.cube.dimensions.length;
 
-        // set up cycle of orientation
-        let cycle = orientDirection == 0?
-            [displayedDim, undisplayedDim]: [undisplayedDim, displayedDim];
-        cycle = cycle.concat(cycle.map(v => (v+numDims)%(2*numDims)));
-
-        // generate orientation
-        let orientation = Array.from(Array(2*numDims)).map((_, i) => i);
-        cycle.forEach((_, i) => {
-            orientation[cycle[(i+1)%4]] = cycle[i];
-        });
+        // get rotation orientation
+        let dimRotation = calcDimRotation(displayedDim, undisplayedDim,
+            orientDirection);
+        let orientation = Util.cycleRotation(numDims, ...dimRotation);
 
         // rotate cube
         this.cube.orientation = Util.rotateOrientation(
             this.cube.orientation, orientation);
 
         // update visuals
-        for({ view } of this.views) {
-            view.setCells();
-        }
-        setOptions.apply(this);
+        updateVisuals.apply(this);
+    }
+
+    function sideOrientation(numDims, sidePicked) {
+        // convert to chosen/unchosen in other handler
+        let dimA = numDims-2+(sidePicked % 2), dimB = 0;
+        let direction = +(sidePicked >= 2);
+        
+        // generate cycle and orientation
+        let dimRotation = calcDimRotation(dimA, dimB, direction);
+        let orientation = Util.cycleRotation(numDims, ...dimRotation);
+
+        return orientation;
     }
 
     function twistHandler() {
+        let numDims = this.cube.dimensions.length;
         let sidePicked = +this.inputs.sideInputs.filter(elem =>
             elem.checked)[0].value;
         let twistDirection = +this.inputs.twDirInputs.filter(elem =>
             elem.checked)[0].value;
-        console.log(sidePicked, twistDirection);
+        let twistSide = (4+sidePicked+Math.pow(-1, twistDirection+1)) % 4;
+
+        let dstOrientation = sideOrientation(numDims, sidePicked);
+        let twsOrientation = sideOrientation(numDims, twistSide);
+        let srcOrientation = Util.rotateOrientation(twsOrientation,
+            dstOrientation);
+
+        // get indices of pieces to rotate
+        let dstIndices = new Square.SquareView(this.cube,
+            dstOrientation).indices;
+        let srcIndices = new Square.SquareView(this.cube,
+            srcOrientation).indices;
+        console.log(srcIndices, dstIndices, twsOrientation);
+
+        // get pieces of cube
+        let pieces = srcIndices.map(v => this.cube.pieces[v]);
+        console.log(pieces);
+
+        // make the twist
+        pieces.forEach((p, i) => {
+            let cubeOr = this.cube.orientation;
+            let antiOr = Util.invertOrientation(cubeOr);
+            let twist = Util.rotateOrientation(cubeOr, twsOrientation);
+            twist = Util.rotateOrientation(twist, antiOr);
+
+            p.orientation = Util.rotateOrientation(p.orientation, twist);
+            this.cube.pieces[dstIndices[i]] = p;
+        });
+
+        // update visuals
+        updateVisuals.apply(this);
     }
 
     function addView(view, tag) {

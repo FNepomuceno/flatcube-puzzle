@@ -37,6 +37,7 @@ const Square = function Square() {
         let pieceIndices = getPieceIndices(dimSizes, dimSides, offsets);
 
         this.pieces = pieceIndices.map(v => cube.pieces[v]);
+        this.indices = pieceIndices;
         this.dimensions = dimSizes.slice(0, 2);
         this.orientation = orView;
     }

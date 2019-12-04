@@ -31,6 +31,14 @@ const Util = function Util() {
         );
         return newOrientation;
     }
+
+    function invertOrientation(orientation) {
+        let newOrientation = Array.from(Array(orientation.length));
+        orientation.forEach((v, i) => {
+            newOrientation[v] = i;
+        });
+        return newOrientation;
+    }
     
     /*
         Characterizes each face by the dimensions it uses and by which
@@ -253,13 +261,28 @@ const Util = function Util() {
         return { numDims, offsets, dimSides, dimSizes };
     }
 
+    // gets orientation as rotation about 2 axes
+    function cycleRotation(numDims, dimFrom, dimTo) {
+        let cycle = [dimFrom, dimTo];
+        cycle = cycle.concat(cycle.map(v => (v+numDims)%(2*numDims)));
+
+        let orientation = Array.from(Array(2*numDims)).map((_, i) => i);
+        cycle.forEach((_, i) => {
+            orientation[cycle[(i+1)%4]] = cycle[i];
+        });
+
+        return orientation;
+    }
+
     console.log('Util Module loaded');
     return {
         factorial,
         rotateOrientation,
+        invertOrientation,
         completeOrientation,
         generateOrientations,
-        profileDims
+        profileDims,
+        cycleRotation
     };
 }();
 

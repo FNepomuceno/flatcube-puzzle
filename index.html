@@ -1,6 +1,6 @@
 <html>
 <head>
-<title>FlatCube 3D v0.2</title>
+<title>FlatCube 3D v0.2.1</title>
 <style>
 body {
     margin: 0;
@@ -64,7 +64,7 @@ body div.center {
 <div class="center">
   <div class="left-side"></div>
   <div class="container">
-    <h1>FlatCube 3D v0.2</h1>
+    <h1>FlatCube 3D v0.2.1</h1>
     <div class="center">
       <div class="field">
         <div id="game-view"></div>
@@ -92,17 +92,9 @@ not do this when not intended.</p>
 <script src="square.js"></script>
 <script src="view.js"></script>
 <script src="modder.js"></script>
-<!--script src="flatcube.js"></script-->
+<script src="flatcube.js"></script>
 <script>
-// note to self: do this asynchronously or otherwise large puzzles
-// like the 8^8 puzzle WILL lag the browser
-// Hint: that's over 16 million pieces total
-//   (is there even enough space for that many pieces?)
-let puz = new Cube.CubePuzzle();
-let vew = new View.GameView(puz, "game-view");
-let con = new Modder.GameController(puz, "game-options", "game");
-con.addView(vew, "main");
-console.log(con);
+Flatcube.run();
 </script>
 </body>
 </html>
