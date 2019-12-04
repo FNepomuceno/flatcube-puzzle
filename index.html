@@ -1,0 +1,106 @@
+<html>
+<head>
+<title>FlatCube 3D</title>
+<style>
+body {
+    background-color: #cdefab;
+}
+.field {
+    background-color: #ffffff;
+    display: inline-block;
+    padding: 5px;
+}
+.row {
+    display: flex;
+}
+.cell {
+    margin: 5px;
+    height: 50px;
+    width: 50px;
+    background-color: white;
+}
+</style>
+</head>
+<body>
+<h1>FlatCube 3D</h1>
+<div class="field">
+  <div class="row">
+    <div class="cell"></div>
+    <div class="cell"></div>
+    <div class="cell"></div>
+  </div>
+  <div class="row">
+    <div class="cell"></div>
+    <div class="cell"></div>
+    <div class="cell"></div>
+  </div>
+  <div class="row">
+    <div class="cell"></div>
+    <div class="cell"></div>
+    <div class="cell"></div>
+  </div>
+  <div class="row">
+    <div>
+      <h3>Re-orient Cube</h3>
+      <h4>Displayed Dimensions</h4>
+      <input type="radio" name="dimX" id="dim0" value="2" checked />
+      <label for="dim0" id="dim0Label">03</label>
+      <input type="radio" name="dimX" id="dim1" value="1" />
+      <label for="dim1" id="dim1Label">14</label>
+
+      <h4>Undisplayed Dimensions</h4>
+      <input type="radio" name="dimY" id="dim2" value="0" checked />
+      <label for="dim2" id="dim2Label">25</label>
+
+      <h4>Rotation Direction</h4>
+      <input type="radio" name="rotD" id="forR" value="0" checked />
+      <label for="forR">Forward</label>
+      <input type="radio" name="rotD" id="bacR" value="1" />
+      <label for="bacR">Backward</label>
+
+      <div style="margin-top: 20px;">
+      <button type="button" id="rotB">Rotate</button>
+      </div>
+    </div>
+    <div>
+      <h3>Twist Cube</h3>
+      <h4>Select Side</h4>
+      <input type="radio" name="twsS" id="sUp" value="0" checked />
+      <label for="dim0">Top</label>
+      <input type="radio" name="twsS" id="sLeft" value="1" />
+      <label for="dim1">Left</label>
+      <input type="radio" name="twsS" id="sDown" value="2" />
+      <label for="dim1">Bottom</label>
+      <input type="radio" name="twsS" id="sRight" value="3" />
+      <label for="dim1">Right</label>
+
+      <h4>Twist Direction</h4>
+      <input type="radio" name="twsD" id="forT" value="0" checked />
+      <label for="forT">Forward</label>
+      <input type="radio" name="twsD" id="bacT" value="1" />
+      <label for="bacT">Backward</label>
+
+      <div style="margin-top: 20px;">
+      <button type="button" id="twsB">Twist</button>
+      </div>
+    </div>
+  </div>
+</div>
+<h2>Explanation</h2>
+<p>Some of you might be familiar with the Rubik's Cube puzzle. This puzzle
+takes a spin on things and introduces Rubik's Cube like puzzles into two
+dimensions.</p>
+<p>There are two kinds of actions possible on FlatCube: re-orienting the
+cube, and making twists on one of the four sides of the displayed square.
+Re-orienting the "cube" changes which face is shown. However this can lead
+to situtaions where you orient the cube multiple times and end up at the
+face you started at, but with your view rotated. Care must be taken as to
+not do this when not intended.</p>
+<script src="util.js"></script>
+<script src="piece.js"></script>
+<script src="cube.js"></script>
+<script src="view.js"></script>
+<script src="modder.js"></script>
+<script src="flatcube.js"></script>
+</body>
+</html>
