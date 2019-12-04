@@ -92,9 +92,32 @@ const Util = (function Util() {
     return { numDims, offsets, dimSides, dimSizes };
   }
 
+  /*
+    Iterates through a large 'list' asynchronously
+
+    Note that the limit needs to be known ahead of time here
+  */
+  async function load(cb=((_) => 0), limit=-1) {
+    const threshold = 1000
+    let totalCount = 0
+    let iterCount = 0
+    while (limit < 0 || totalCount < limit) {
+      if (iterCount >= threshold) {
+        iterCount = 0
+        await new Promise((resolve, reject) => {
+          setTimeout(resolve, 0)
+        })
+      }
+      cb(totalCount)
+      totalCount++
+      iterCount++
+    }
+  }
+
   return {
     profileDims,
-    axisRotation
+    axisRotation,
+    load
   }
 }())
 
