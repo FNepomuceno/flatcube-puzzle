@@ -77,10 +77,7 @@ const Modder = function Modder() {
 
         // make the twist
         pieces.forEach((p, i) => {
-            let twist = Orientation.conjugate(this.cube.orientation,
-                twsOrientation);
-
-            p.orientation = Orientation.compose(p.orientation, twist);
+            p.twist(twsOrientation, this.cube.orientation);
             this.cube.pieces[dstIndices[i]] = p;
         });
 

@@ -1,37 +1,74 @@
-const Piece = function Piece() {
-    /*
-        Constructs a new cube piece
-
-        For each dimension, there could be a sticker on one of the opposite
-        pair of faces, or none (but not on both faces), represented with
-        the choices "front", "back", and "none"
-
-        The orientation is listed as a permutation of the 6 faces of the
-        cube, hence the 6 entries of the orientation being numbers 0-5.
-    */
-    function CubePiece(...stickersChosen) {
-        let numDims = stickersChosen.length;
-        let stickers = Array.from(Array(2*numDims)).map((_, i) => i);
-        let orientation = Array.from(Array(2*numDims)).map((_, i) => i);
-        for(let i=0; i < numDims; i++) {
-            if(stickersChosen[i] == "none") {
-                stickers[i] = -1;
-                stickers[i+numDims] = -1;
-            } else if(stickersChosen[i] == "front") {
-                stickers[i+numDims] = -1;
-            } else if(stickersChosen[i] == "back") {
-                stickers[i] = -1;
-            } else {
-                throw Error("invalid sticker choice");
-            }
-        }
-        this.stickers = stickers;
-        this.dimensions = numDims;
-        this.orientation = orientation;
+/*
+  A module for the Piece objects and any functions related to Pieces
+*/
+const Piece = (function Piece() {
+  class Piece {
+    constructor(numDims) {
+      this.numDims = numDims
+      this.dimensions = numDims // old name for numDims
+      this.stickers = Array.from(Array(2*numDims)).map((_, i) => i)
+      this.orientation = Array.from(Array(2*numDims)).map((_, i) => i)
     }
 
-    console.log('Piece Module loaded');
-    return {
-        CubePiece
-    };
-}();
+    /*
+      Sets the stickers for the (newly created) piece
+
+      For each axis of the cube piece, there could be a sticker on at most
+      one of the pair of opposite faces. These choices are represented
+      with "front", "back", and "none"
+
+      Any input for stickersChosen that isn't "front" or "back" defaults
+      to "none"
+    */
+    setStickers(...stickersChosen) {
+      for(let i=0; i < this.numDims; i++) {
+        if(stickersChosen[i] !== "front") {
+          this.stickers[i] = -1
+        }
+        if(stickersChosen[i] !== "back") {
+          this.stickers[i+this.numDims] = -1
+        }
+      }
+    }
+
+    /*
+      Twists the piece
+
+      The twist orientation (twsOrientation) is the orientation to twist
+      the piece. This twist can be done starting from some orientation
+      and not just the default orientation, called the context
+      orientation (ctxOrientation)
+    */
+    twist(twsOrientation, ctxOrientation) {
+      let resOrientation = Orientation.conjugate(ctxOrientation,
+        twsOrientation)
+      this.orientation = Orientation.compose(this.orientation,
+        resOrientation);
+    }
+
+    /*
+      Gets the sticker from some orientation of the cube
+    */
+    getSticker(ctxOrientation) {
+      let stkOrientation = Orientation.compose(this.orientation,
+        ctxOrientation);
+      return this.stickers[stkOrientation[0]];
+    }
+  }
+
+  /*
+    Creates a new Piece
+  */
+  function create(...stickersChosen) {
+    let numDims = stickersChosen.length
+    let newPiece = new Piece(numDims)
+
+    newPiece.setStickers(...stickersChosen)
+    return newPiece
+  }
+
+  return {
+    create
+  }
+}())
+

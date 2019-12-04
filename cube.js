@@ -15,7 +15,7 @@ const Cube = function Cube() {
                 stickersChosen[numDims-1-j] = choice;
                 pieceNum = ~~(pieceNum/dimSize);
             }
-            var newPiece = new Piece.CubePiece(...stickersChosen);
+            let newPiece = Piece.create(...stickersChosen)
             cubePieces.push(newPiece);
         }
         this.pieces = cubePieces;
