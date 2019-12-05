@@ -17,6 +17,23 @@ const Modder = (function Modder() {
     addView(view, key) {
       this.views.set(key, view)
     }
+
+    update() {
+      let { orientation, numDims } = this.cube
+      let chosenLabels = this.sections[0].radios[0].labels
+      let unchosenLabels = this.sections[0].radios[1].labels
+      let dirChoice = +(this.sections[0].radios[2].radios
+        .filter(elem => elem.checked)[0].value)
+      const labelDirections = [['Left', 'Top'], ['Right', 'Bottom']]
+
+      chosenLabels.forEach((label, i) => {
+        label.innerHTML = (orientation[numDims-1-i+dirChoice*numDims])
+          + ' (' + labelDirections[dirChoice][i] + ')'
+      })
+      unchosenLabels.forEach((label, i) => {
+        label.innerHTML = orientation[numDims-1-(i+2)]
+      })
+    }
   }
 
   class ModSection {
@@ -44,6 +61,24 @@ const Modder = (function Modder() {
       this.button.innerHTML = btnValue
       this.button.style.marginTop = '1em'
       this.node.appendChild(this.button)
+    }
+
+    getOptions() {
+      return this.radios.map(radio => {
+        return +(radio.radios.filter(elem => elem.checked)[0].value)
+      })
+    }
+
+    setHandler(handler, modder) {
+      this.button.addEventListener('click', async () => {
+        await handler.call(this, modder.cube)
+
+        modder.views.forEach(view => {
+          view.setCells()
+        })
+
+        modder.update()
+      })
     }
   }
 
@@ -81,37 +116,6 @@ const Modder = (function Modder() {
     }
   }
 
-  function create(cube, canvasId, tag) {
-    let modder = new Modder(cube, canvasId, tag)
-    let orientSec = newSection(modder, 'Re-orient Cube', 'Rotate',
-      `${tag}-rotButton`)
-    let twistSec = newSection(modder, 'Twist Cube', 'Twist',
-      `${tag}-twsButton`)
-
-    newRadio(orientSec, 'Displayed Dimensions', `${tag}-dimX`,
-      Array(2).fill(-1))
-    newRadio(orientSec, 'Undisplayed Dimensions', `${tag}-dimY`,
-      Array(cube.numDims-2).fill(-1))
-    newRadio(orientSec, 'Rotation Direction', `${tag}-rotD`,
-      ['Forward', 'Backward'])
-    orientSec.radios[2].node.addEventListener('click', () =>
-      update(modder))
-
-    newRadio(twistSec, 'Select Side', `${tag}-twsS`,
-      ['Top', 'Left', 'Bottom', 'Right'])
-    newRadio(twistSec, 'Twist Direction', `${tag}-twsD`,
-      ['Forward', 'Backward'])
-
-    orientSec.button.addEventListener('click', () =>
-      rotateCube(modder))
-    twistSec.button.addEventListener('click', () =>
-      twistCube(modder))
-
-    update(modder)
-
-    return modder
-  }
-
   function newSection(modder, title, btnValue, btnId) {
     let section = new ModSection(title)
 
@@ -128,53 +132,52 @@ const Modder = (function Modder() {
     section.addRadio(radio)
   }
 
-  function update(modder) {
-    let { orientation, numDims } = modder.cube
-    let chosenLabels = modder.sections[0].radios[0].labels
-    let unchosenLabels = modder.sections[0].radios[1].labels
-    let dirChoice = +(modder.sections[0].radios[2].radios
-      .filter(elem => elem.checked)[0].value)
-    const labelDirections = [['Left', 'Top'], ['Right', 'Bottom']]
+  function create(cube, canvasId, tag) {
+    let modder = new Modder(cube, canvasId, tag)
+    let orientSec = newSection(modder, 'Re-orient Cube', 'Rotate',
+      `${tag}-rotButton`)
+    let twistSec = newSection(modder, 'Twist Cube', 'Twist',
+      `${tag}-twsButton`)
 
-    chosenLabels.forEach((label, i) => {
-      label.innerHTML = (orientation[numDims-1-i+dirChoice*numDims])
-        + ' (' + labelDirections[dirChoice][i] + ')'
-    })
-    unchosenLabels.forEach((label, i) => {
-      label.innerHTML = orientation[numDims-1-(i+2)]
-    })
+    newRadio(orientSec, 'Displayed Dimensions', `${tag}-dimX`,
+      Array(2).fill(-1))
+    newRadio(orientSec, 'Undisplayed Dimensions', `${tag}-dimY`,
+      Array(cube.numDims-2).fill(-1))
+    newRadio(orientSec, 'Rotation Direction', `${tag}-rotD`,
+      ['Forward', 'Backward'])
+    orientSec.radios[2].node.addEventListener('click', () =>
+      modder.update())
+
+    newRadio(twistSec, 'Select Side', `${tag}-twsS`,
+      ['Top', 'Left', 'Bottom', 'Right'])
+    newRadio(twistSec, 'Twist Direction', `${tag}-twsD`,
+      ['Forward', 'Backward'])
+
+    orientSec.setHandler(rotateCube, modder)
+    twistSec.setHandler(twistCube, modder)
+
+    modder.update()
+
+    return modder
   }
 
-  function getRotateOptions(modder) {
-    let optionsPicked = modder.sections[0].radios.map(radio => {
-      return +(radio.radios.filter(elem => elem.checked)[0].value)
-    })
-
-    return {
-      displayedChoice: optionsPicked[0],
-      undisplayedChoice: optionsPicked[1],
-      orientDirection: optionsPicked[2]
-    }
-  }
-
-  function rotateCube(modder) {
-    let { displayedChoice, undisplayedChoice, orientDirection
-    } = getRotateOptions(modder)
-    let displayedDim = modder.cube.numDims-1-displayedChoice
-    let undisplayedDim = modder.cube.numDims-3-undisplayedChoice
-    let numDims = modder.cube.numDims
+  function calcRotateOrientation(numDims, displayedChoice,
+      undisplayedChoice, orientDirection) {
+    let displayedDim = numDims-1-displayedChoice
+    let undisplayedDim = numDims-3-undisplayedChoice
 
     let dimRotation = orientDirection == 0?
       [displayedDim, undisplayedDim]: [undisplayedDim, displayedDim]
     let orientation = Util.axisRotation(numDims, ...dimRotation)
 
-    modder.cube.rotate(orientation)
+    return orientation
+  }
 
-    modder.views.forEach(view => {
-      view.setCells()
-    })
-
-    update(modder)
+  /*
+    Rotates the cube according to the options set on the modder
+  */
+  function rotateCube(cube) {
+    cube.rotate(calcRotateOrientation(cube.numDims, ...this.getOptions()))
   }
 
   function sideOrientation(numDims, sidePicked) {
@@ -189,35 +192,21 @@ const Modder = (function Modder() {
     return orientation
   }
 
-  function getTwistOptions(modder) {
-    let optionsPicked = modder.sections[1].radios.map(radio => {
-      return +(radio.radios.filter(elem => elem.checked)[0].value)
-    })
-
-    return {
-      sidePicked: optionsPicked[0],
-      twistDirection: optionsPicked[1]
-    }
-  }
-
-  /*
-    Twists the cube according to the options set on the modder
-  */
-  async function twistCube(modder) {
-    let numDims = modder.cube.numDims
-    let { sidePicked, twistDirection } = getTwistOptions(modder)
+  function calcTwistOrientations(numDims, sidePicked, twistDirection) {
     let twistSide = (4 + sidePicked + Math.pow(-1, twistDirection + 1)) % 4
 
     let dstOrientation = sideOrientation(numDims, sidePicked)
     let twsOrientation = sideOrientation(numDims, twistSide)
 
-    await Slice.twistCube(modder.cube, dstOrientation, twsOrientation)
+    return [dstOrientation, twsOrientation]
+  }
 
-    modder.views.forEach(view => {
-      view.setCells()
-    })
-
-    update(modder)
+  /*
+    Twists the cube according to the options set on the modder
+  */
+  async function twistCube(cube) {
+    await Slice.twistCube(cube, ...calcTwistOrientations(
+      cube.numDims, ...this.getOptions()))
   }
 
   return {
