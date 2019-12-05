@@ -11,19 +11,19 @@ const View = function View() {
             "#11ee11", // green
             "#cccccc", // white
             "#eeaa11", // orange
-            "#1111dd",  // blue
+            "#1111dd", // blue
             "#eeee11", // yellow
-            "#ee1111" // red
+            "#ee1111"  // red
         ];
         const dim4colors = [
             "#FF7777", // light red
             "#77FF77", // light green
-            "#7777FF", // light blue
             "#FFFF77", // light yellow
+            "#7777FF", // light blue
             "#770000", // dark red
             "#007700", // dark green
-            "#000077", // dark blue
-            "#777700"  // dark yellow
+            "#777700", // dark yellow
+            "#000077"  // dark blue
         ];
 
         let cube = this.cube;

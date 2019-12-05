@@ -1,312 +1,230 @@
-const Modder = function Modder() {
-    function setDimensions() {
-        let numDims = this.cube.dimensions.length;
-        let dimensions = this.cube.orientation.slice(0, numDims);
-        let chosenDimensions = dimensions.slice(0, 2);
-        let unchosenDimensions = dimensions.slice(2);
+const Modder = (function Modder() {
+  class ModRadio {
+    constructor(title) {
+      this.node = document.createElement('div')
+      this.title = document.createElement('h4')
+      this.radios = []
+      this.labels = []
 
-        return { chosenDimensions, unchosenDimensions };
+      this.title.innerHTML = title
+      this.node.appendChild(this.title)
     }
 
-    function calcDimRotation(dimA, dimB, direction) {
-        return direction == 0? [dimA, dimB]: [dimB, dimA];
+    setRadios(name, values) {
+      values.forEach((value, i) => {
+        let newContainer = document.createElement('div')
+        let newRadio = document.createElement('input')
+        let newLabel = document.createElement('label')
+
+        newRadio.type = 'radio'
+        newRadio.name = name
+        newRadio.value = i
+        newRadio.id = `${name}-${i}`
+        if (i === 0) newRadio.checked = true
+        newLabel.htmlFor = newRadio.id
+        newLabel.innerHTML = value
+
+        this.radios.push(newRadio)
+        this.labels.push(newLabel)
+        newContainer.appendChild(newRadio)
+        newContainer.appendChild(newLabel)
+        this.node.appendChild(newContainer)
+      })
+    }
+  }
+
+  class ModSection {
+    constructor(title) {
+      this.node = document.createElement('div')
+      this.title = document.createElement('h3')
+      this.radios = []
+      this.button = document.createElement('button')
+
+      this.title.innerHTML = title
+      this.node.appendChild(this.title)
     }
 
-    function updateVisuals() {
-        for({ view } of this.views) {
-            view.setCells();
-        }
-        setOptions.apply(this);
+    addRadio(radio) {
+      this.radios.push(radio)
+      this.node.insertBefore(radio.node, this.button)
     }
 
-    function orientHandler() {
-        let displayedDim = +this.inputs.chosenInputs.filter(elem =>
-            elem.checked)[0].value;
-        let undisplayedDim = +this.inputs.unchosenInputs.filter(elem =>
-            elem.checked)[0].value;
-        let orientDirection = +this.inputs.orDirInputs.filter(elem =>
-            elem.checked)[0].value;
-        let numDims = this.cube.dimensions.length;
+    /*
+      Sets the button of the newly created object
+    */
+    setButton(btnValue, btnId) {
+      this.button.type = 'button'
+      this.button.id = btnId
+      this.button.innerHTML = btnValue
+      this.button.style.marginTop = '1em'
+      this.node.appendChild(this.button)
+    }
+  }
 
-        // get rotation orientation
-        let dimRotation = calcDimRotation(displayedDim, undisplayedDim,
-            orientDirection);
-        let orientation = Util.axisRotation(numDims, ...dimRotation);
-
-        // rotate cube
-        this.cube.orientation = Orientation.compose(
-            this.cube.orientation, orientation);
-
-        // update visuals
-        updateVisuals.apply(this);
+  class Modder {
+    constructor(cube, canvasId, tag) {
+      this.cube = cube
+      this.canvas = document.getElementById(canvasId)
+      this.tag = tag
+      this.views = new Map()
+      this.sections = [] // corresponds with orient, twist, ...
+      // and contains the inputs and buttons
     }
 
-    function sideOrientation(numDims, sidePicked) {
-        // convert to chosen/unchosen in other handler
-        let dimA = numDims-2+(sidePicked % 2), dimB = 0;
-        let direction = +(sidePicked >= 2);
-        
-        // generate cycle and orientation
-        let dimRotation = calcDimRotation(dimA, dimB, direction);
-        let orientation = Util.axisRotation(numDims, ...dimRotation);
-
-        return orientation;
+    addSection(section) {
+      this.sections.push(section)
+      this.canvas.appendChild(section.node)
     }
 
-    async function twistHandler() {
-        let numDims = this.cube.dimensions.length;
-        let sidePicked = +this.inputs.sideInputs.filter(elem =>
-            elem.checked)[0].value;
-        let twistDirection = +this.inputs.twDirInputs.filter(elem =>
-            elem.checked)[0].value;
-        let twistSide = (4+sidePicked+Math.pow(-1, twistDirection+1)) % 4;
-
-        let dstOrientation = sideOrientation(numDims, sidePicked);
-        let twsOrientation = sideOrientation(numDims, twistSide);
-        let srcOrientation = Orientation.compose(twsOrientation,
-            dstOrientation);
-
-        // get indices of pieces to rotate
-        let dstIndices = (await Slice.create(this.cube,
-            dstOrientation, 2)).indices;
-        let srcIndices = (await Slice.create(this.cube,
-            srcOrientation, 2)).indices;
-
-        // get pieces of cube
-        let pieces = srcIndices.map(v => this.cube.pieces[v]);
-
-        // make the twist
-        pieces.forEach((p, i) => {
-            p.twist(twsOrientation, this.cube.orientation);
-            this.cube.pieces[dstIndices[i]] = p;
-        });
-
-        // update visuals
-        updateVisuals.apply(this);
+    addView(view, key) {
+      this.views.set(key, view)
     }
+  }
 
-    function addView(view, tag) {
-        this.views.push({ view, tag });
-    }
+  function newRadio(section, title, name, values) {
+    let radio = new ModRadio(title)
 
-    function GameController(cube, canvasId, tag) {
-        this.cube = cube;
-        this.canvas = document.getElementById(canvasId);
-        this.tag = tag;
-        this.views = []; // Views to update when changes made
-        this.addView = addView;
-        let {
-            chosenDimensions, unchosenDimensions
-        } = setDimensions.apply(this);
-        this.chosenDimensions = chosenDimensions;
-        this.unchosenDimensions = unchosenDimensions;
-        let { inputs, buttons } = generateOptions.apply(this);
-        this.inputs = inputs;
-        this.buttons = buttons;
-        setOptions.apply(this);
+    radio.setRadios(name, values)
+    section.addRadio(radio)
+  }
 
-        this.buttons.rotButton.addEventListener("click", () =>
-            orientHandler.apply(this));
-        this.buttons.twsButton.addEventListener("click", () =>
-            twistHandler.apply(this));
-    }
+  function newSection(modder, title, btnValue, btnId) {
+    let section = new ModSection(title)
 
-    function setOptions() {
-        let numDims = this.cube.dimensions.length;
-        const directionLabels = ["Forward", "Backward"];
-        const sideLabels = ["Top", "Left", "Bottom", "Right"];
-        const chosenLabels = ["(left/right)", "(top/bottom)"];
+    section.setButton(btnValue, btnId)
+    modder.addSection(section)
 
-        // Orient Section
-        this.inputs.chosenInputs.forEach((v, i) => {
-            let inpLabel = v.nextSibling;
-            inpLabel.innerHTML = 
-                `${this.cube.orientation[numDims-1-i]} ${chosenLabels[i]}`;
-        });
+    return section
+  }
 
-        this.inputs.unchosenInputs.forEach((v, i) => {
-            let inpLabel = v.nextSibling;
-            inpLabel.innerHTML = this.cube.orientation[numDims-1-(i+2)];
-        });
+  function create(cube, canvasId, tag) {
+    let modder = new Modder(cube, canvasId, tag)
+    let orientSec = newSection(modder, 'Re-orient Cube', 'Rotate',
+      `${tag}-rotButton`)
+    let twistSec = newSection(modder, 'Twist Cube', 'Twist',
+      `${tag}-twsButton`)
 
-        this.inputs.orDirInputs.forEach((v, i) => {
-            let inpLabel = v.nextSibling;
-            // Doesn't change, but might as well keep it here for now
-            inpLabel.innerHTML = directionLabels[i];
-        });
+    newRadio(orientSec, 'Displayed Dimensions', `${tag}-dimX`,
+      Array(2).fill(-1))
+    newRadio(orientSec, 'Undisplayed Dimensions', `${tag}-dimY`,
+      Array(cube.numDims-2).fill(-1))
+    newRadio(orientSec, 'Rotation Direction', `${tag}-rotD`,
+      ['Forward', 'Backward'])
+    orientSec.radios[2].node.addEventListener('click', () =>
+      update(modder))
 
-        // Twist Section
-        this.inputs.sideInputs.forEach((v, i) => {
-            let inpLabel = v.nextSibling;
-            inpLabel.innerHTML = sideLabels[i];
-        });
+    newRadio(twistSec, 'Select Side', `${tag}-twsS`,
+      ['Top', 'Left', 'Bottom', 'Right'])
+    newRadio(twistSec, 'Twist Direction', `${tag}-twsD`,
+      ['Forward', 'Backward'])
 
-        this.inputs.twDirInputs.forEach((v, i) => {
-            let inpLabel = v.nextSibling;
-            // Doesn't change, but might as well keep it here for now
-            inpLabel.innerHTML = directionLabels[i];
-        });
+    orientSec.button.addEventListener('click', () =>
+      rotateCube(modder))
+    twistSec.button.addEventListener('click', () =>
+      twistCube(modder))
 
-        // Options for layers for each dimension above 3 would go here
-    }
+    update(modder)
 
-    function generateOptions() {
-        let numDims = this.cube.dimensions.length;
+    return modder
+  }
 
-        // Orient Section
-        let orSection = document.createElement("div");
-        orSection.className = "orSection";
-        this.canvas.appendChild(orSection);
+  function update(modder) {
+    let { orientation, numDims } = modder.cube
+    let chosenLabels = modder.sections[0].radios[0].labels
+    let unchosenLabels = modder.sections[0].radios[1].labels
+    let dirChoice = +(modder.sections[0].radios[2].radios
+      .filter(elem => elem.checked)[0].value)
+    const labelDirections = [['Left', 'Top'], ['Right', 'Bottom']]
 
-        let orSecHeader = document.createElement("h3");
-        orSecHeader.innerHTML = "Re-orient Cube";
-        orSection.appendChild(orSecHeader);
+    chosenLabels.forEach((label, i) => {
+      label.innerHTML = (orientation[numDims-1-i+dirChoice*numDims])
+        + ' (' + labelDirections[dirChoice][i] + ')'
+    })
+    unchosenLabels.forEach((label, i) => {
+      label.innerHTML = orientation[numDims-1-(i+2)]
+    })
+  }
 
-        let dispHeader = document.createElement("h4");
-        dispHeader.innerHTML = "Displayed Dimensions";
-        orSection.appendChild(dispHeader);
+  function rotateCube(modder) {
+    let displayedChoice = +(modder.sections[0].radios[0].radios
+      .filter(elem => elem.checked)[0].value)
+    let undisplayedChoice = +(modder.sections[0].radios[1].radios
+      .filter(elem => elem.checked)[0].value)
+    let displayedDim = modder.cube.numDims-1-displayedChoice
+    let undisplayedDim = modder.cube.numDims-3-undisplayedChoice
+    let orientDirection = +(modder.sections[0].radios[2].radios
+      .filter(elem => elem.checked)[0].value)
+    let numDims = modder.cube.numDims
 
-        let dimxRadios = [];
-        for(let i = 0; i < 2; i++) {
-            let newInput = document.createElement("input");
-            newInput.type = "radio";
-            newInput.name = "dimX";
-            newInput.value = numDims-1-i;
-            newInput.id = `${this.tag}-dim-${i}`;
-            if(i === 0) { newInput.checked = true; }
-            orSection.appendChild(newInput);
-            dimxRadios.push(newInput);
+    // get rotation orientation
+    let dimRotation = orientDirection == 0?
+      [displayedDim, undisplayedDim]: [undisplayedDim, displayedDim]
+    let orientation = Util.axisRotation(numDims, ...dimRotation)
 
-            let newLabel = document.createElement("label");
-            newLabel.htmlFor = newInput.id;
-            orSection.appendChild(newLabel);
-        }
+    // rotate cube
+    // move to Cube as Cube#rotate(orientation)
+    modder.cube.orientation = Orientation.compose(
+      modder.cube.orientation, orientation)
 
-        let undispHeader = document.createElement("h4");
-        undispHeader.innerHTML = "Unisplayed Dimensions";
-        orSection.appendChild(undispHeader);
+    // update views
+    modder.views.forEach(view => {
+      view.setCells()
+    })
 
-        let dimyRadios = [];
-        for(let i = 2; i < numDims; i++) {
-            let newInput = document.createElement("input");
-            newInput.type = "radio";
-            newInput.name = "dimY";
-            newInput.value = numDims-1-i;
-            newInput.id = `${this.tag}-dim-${i}`;
-            if(i === 2) { newInput.checked = true; }
-            orSection.appendChild(newInput);
-            dimyRadios.push(newInput);
+    // update options
+    update(modder)
+  }
 
-            let newLabel = document.createElement("label");
-            newLabel.htmlFor = newInput.id;
-            orSection.appendChild(newLabel);
-        }
+  function sideOrientation(numDims, sidePicked) {
+    // convert to chosen/unchosen in other handler
+    let dimA = numDims-2+(sidePicked % 2), dimB = 0
+    let direction = +(sidePicked >= 2)
 
-        let rotHeader = document.createElement("h4");
-        rotHeader.innerHTML = "Rotation Direction";
-        orSection.appendChild(rotHeader);
+    // generate cycle and orientation
+    let dimRotation = direction == 0? [dimA, dimB]: [dimB, dimA]
+    let orientation = Util.axisRotation(numDims, ...dimRotation)
 
-        let rotRadios = [];
-        for(let i = 0; i < 2; i++) {
-            let newInput = document.createElement("input");
-            newInput.type = "radio";
-            newInput.name = "rotD";
-            newInput.value = i;
-            newInput.id = `${this.tag}-dirRot-${i}`;
-            if(i === 0) { newInput.checked = true; }
-            orSection.appendChild(newInput);
-            rotRadios.push(newInput);
+    return orientation
+  }
 
-            let newLabel = document.createElement("label");
-            newLabel.htmlFor = newInput.id;
-            orSection.appendChild(newLabel);
-        }
+  async function twistCube(modder) {
+    let numDims = modder.cube.numDims
+    let sidePicked = +modder.sections[1].radios[0].radios
+      .filter(elem => elem.checked)[0].value
+    let twistDirection = +modder.sections[1].radios[1].radios
+      .filter(elem => elem.checked)[0].value
+    let twistSide = (4+sidePicked+Math.pow(-1, twistDirection+1)) % 4
 
-        orSection.appendChild(document.createElement("br"));
+    let dstOrientation = sideOrientation(numDims, sidePicked)
+    let twsOrientation = sideOrientation(numDims, twistSide)
+    let srcOrientation = Orientation.compose(twsOrientation,
+      dstOrientation)
 
-        let rotButton = document.createElement("button");
-        rotButton.type = "button";
-        rotButton.id = `${this.tag}-rotButton`;
-        rotButton.innerHTML = "Rotate";
-        rotButton.style.marginTop = "1em";
-        orSection.appendChild(rotButton);
+    // get indices of pieces to rotate
+    let dstIndices = (await Slice.create(modder.cube,
+      dstOrientation, numDims-1)).indices
+    let srcIndices = (await Slice.create(modder.cube,
+      srcOrientation, numDims-1)).indices
 
-        // Twist Section
-        let twSection = document.createElement("div");
-        twSection.className = "twSection";
-        this.canvas.appendChild(twSection);
+    // get pieces of cube
+    let pieces = srcIndices.map(v => modder.cube.pieces[v])
 
-        let twSecHeader = document.createElement("h3");
-        twSecHeader.innerHTML = "Twist Cube";
-        twSection.appendChild(twSecHeader);
+    // make the twist
+    pieces.forEach((p, i) => {
+      p.twist(twsOrientation, modder.cube.orientation)
+      modder.cube.pieces[dstIndices[i]] = p
+    })
 
-        let sideHeader = document.createElement("h4");
-        sideHeader.innerHTML = "Select Side";
-        twSection.appendChild(sideHeader);
+    // update views
+    modder.views.forEach(view => {
+      view.setCells()
+    })
 
-        let sideRadios = [];
-        for(let i = 0; i < 4; i++) {
-            let newInput = document.createElement("input");
-            newInput.type = "radio";
-            newInput.name = "twsS";
-            newInput.value = i;
-            newInput.id = `${this.tag}-sideTws-${i}`;
-            if(i === 0) { newInput.checked = true; }
-            twSection.appendChild(newInput);
-            sideRadios.push(newInput);
+    // update options
+    update(modder)
+  }
 
-            let newLabel = document.createElement("label");
-            newLabel.htmlFor = newInput.id;
-            twSection.appendChild(newLabel);
-        }
-
-        let twsHeader = document.createElement("h4");
-        twsHeader.innerHTML = "Twist Direction";
-        twSection.appendChild(twsHeader);
-
-        let twRadios = [];
-        for(let i = 0; i < 2; i++) {
-            let newInput = document.createElement("input");
-            newInput.type = "radio";
-            newInput.name = "twsD";
-            newInput.value = i;
-            newInput.id = `${this.tag}-dirTws-${i}`;
-            if(i === 0) { newInput.checked = true; }
-            twSection.appendChild(newInput);
-            twRadios.push(newInput);
-
-            let newLabel = document.createElement("label");
-            newLabel.htmlFor = newInput.id;
-            twSection.appendChild(newLabel);
-        }
-
-        // Options for layers for each dimension above 3 would go here
-
-        twSection.appendChild(document.createElement("br"));
-
-        let twsButton = document.createElement("button");
-        twsButton.type = "button";
-        twsButton.id = `${this.tag}-twsButton`;
-        twsButton.innerHTML = "Twist";
-        twsButton.style.marginTop = "1em";
-        twSection.appendChild(twsButton);
-
-        return {
-            inputs: {
-                chosenInputs: dimxRadios,
-                unchosenInputs: dimyRadios,
-                orDirInputs: rotRadios,
-                sideInputs: sideRadios,
-                twDirInputs: twRadios,
-            },
-            buttons: {
-                rotButton,
-                twsButton,
-            }
-        };
-    }
-
-    return {
-        GameController
-    };
-}();
+  return {
+    create
+  }
+}())
