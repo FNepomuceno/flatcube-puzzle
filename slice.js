@@ -75,8 +75,31 @@ const Slice = (function Slice() {
     return newSlice
   }
 
+  /*
+    Twists a cube according to the side picked and twist direction
+  */
+  async function twistCube(cube, sideOrientation, twistOrientation) {
+    let dstOrientation = sideOrientation
+    let srcOrientation = Orientation.compose(twistOrientation,
+      sideOrientation)
+
+    let dstIndices = (await create(cube, dstOrientation,
+      cube.numDims-1)).indices
+    let srcIndices = (await create(cube, srcOrientation,
+      cube.numDims-1)).indices
+
+    let pieces = srcIndices.map(v => cube.pieces[v])
+
+    await Util.load((i) => {
+      let piece = pieces[i]
+      piece.twist(twistOrientation, cube.orientation)
+      cube.pieces[dstIndices[i]] = piece
+    }, pieces.length)
+  }
+
   return {
-    create
+    create,
+    twistCube
   }
 }())
 

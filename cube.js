@@ -36,6 +36,11 @@ const Cube = (function Cube() {
         this.pieces.push(Piece.create(...stickersChosen))
       }, numPieces)
     }
+
+    rotate(orientation) {
+      this.orientation = Orientation.compose(
+        this.orientation, orientation)
+    }
   }
 
   /*
