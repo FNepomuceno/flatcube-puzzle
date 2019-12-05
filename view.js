@@ -6,7 +6,7 @@ const View = function View() {
         return stickers;
     }
 
-    function setCells() {
+    async function setCells() {
         const dim3colors = [
             "#11ee11", // green
             "#cccccc", // white
@@ -36,7 +36,7 @@ const View = function View() {
         }
         let orientation = Array.from(Array(2*numDims)).map((_, i) => i);
         let stickers = extractStickers(
-            new Square.SquareView(cube, orientation));
+            await Slice.create(cube, orientation, 2));
         let cells = this.cells;
         stickers.forEach((v, ind) => {
             cells[ind].style.backgroundColor = v >= 0? colors[v]: "white";
@@ -44,15 +44,11 @@ const View = function View() {
         });
     }
 
-    // constructor for GameView object
-    function GameView(cube, canvasId) {
-        this.canvas = document.getElementById(canvasId);
-        this.cube = cube;
-        this.cells = [];
-        this.setCells = setCells;
-
-        let sqrView = new Square.SquareView(cube);
-        [this.numCols, this.numRows] = sqrView.dimensions;
+    async function setView() {
+        let orientation = Array.from(Array(2*this.cube.numDims))
+          .map((_, i) => i)
+        let sqrView = await Slice.create(this.cube, orientation, 2)
+        ;[this.numCols, this.numRows] = Array(2).fill(sqrView.dimSize);
 
         this.canvas.style.display = "grid";
         this.canvas.style.gridTemplateRows =
@@ -70,8 +66,22 @@ const View = function View() {
         this.setCells();
     }
 
-    console.log('View Module loaded');
+    async function createView(cube, canvasId) {
+      let newView = new GameView(cube, canvasId)
+      await setView.apply(newView)
+
+      return newView
+    }
+
+    // constructor for GameView object
+    function GameView(cube, canvasId) {
+        this.canvas = document.getElementById(canvasId);
+        this.cube = cube;
+        this.cells = [];
+        this.setCells = setCells;
+    }
+
     return {
-        GameView
+        createView
     };
 }();

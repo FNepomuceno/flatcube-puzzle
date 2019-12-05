@@ -53,7 +53,7 @@ const Modder = function Modder() {
         return orientation;
     }
 
-    function twistHandler() {
+    async function twistHandler() {
         let numDims = this.cube.dimensions.length;
         let sidePicked = +this.inputs.sideInputs.filter(elem =>
             elem.checked)[0].value;
@@ -67,10 +67,10 @@ const Modder = function Modder() {
             dstOrientation);
 
         // get indices of pieces to rotate
-        let dstIndices = new Square.SquareView(this.cube,
-            dstOrientation).indices;
-        let srcIndices = new Square.SquareView(this.cube,
-            srcOrientation).indices;
+        let dstIndices = (await Slice.create(this.cube,
+            dstOrientation, 2)).indices;
+        let srcIndices = (await Slice.create(this.cube,
+            srcOrientation, 2)).indices;
 
         // get pieces of cube
         let pieces = srcIndices.map(v => this.cube.pieces[v]);

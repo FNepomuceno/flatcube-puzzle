@@ -33,65 +33,6 @@ const Util = (function Util() {
     return orientation
   }
 
-  // helper function
-  function characterizeFaces(facesChosen, numDims) {
-    let numFaces = facesChosen.length;
-    let dimsChosen = Array.from(Array(numFaces));
-    let sidesChosen = Array.from(Array(numFaces));
-
-    dimsChosen.forEach((_, i) => {
-      dimsChosen[i] = facesChosen[i] % numDims;
-    });
-    sidesChosen.forEach((_, i) => {
-      sidesChosen[i] = +(facesChosen[i] >= numDims);
-    });
-
-    return { dimsChosen, sidesChosen };
-  }
-
-  // helper function
-  function calcDimOffsets(cubeDimensions, dimsChosen) {
-    let numDims = cubeDimensions.length;
-    let product = 1;
-    let baseOffsets = Array.from(Array(numDims));
-    let offsets = Array.from(Array(numDims));
-
-    cubeDimensions.forEach((v, i) => {
-      baseOffsets[i] = product;
-      product *= v;
-    });
-    offsets = offsets.map((_, i) => {
-      return baseOffsets[numDims-1-dimsChosen[numDims-1-i]];
-    });
-
-    return offsets;
-  }
-
-  // helper function
-  function calcDimSizes(cubeDimensions, dimsChosen) {
-    let numDims = cubeDimensions.length;
-    let dimSizes = Array.from(Array(numDims));
-
-    dimSizes.forEach((_, i) => {
-      dimSizes[i] = cubeDimensions[numDims-1-dimsChosen[i]];
-    });
-
-    return dimSizes;
-  }
-
-  function profileDims(cube, orientation) {
-    let numDims = cube.dimensions.length;
-    let {
-      dimsChosen, sidesChosen
-    } = characterizeFaces(orientation.slice(0, numDims), numDims);
-
-    let offsets = calcDimOffsets(cube.dimensions, dimsChosen);
-    let dimSides = Array.from(sidesChosen).reverse();
-    let dimSizes = calcDimSizes(cube.dimensions, dimsChosen);
-
-    return { numDims, offsets, dimSides, dimSizes };
-  }
-
   /*
     Iterates through a large 'list' asynchronously
 
@@ -115,7 +56,6 @@ const Util = (function Util() {
   }
 
   return {
-    profileDims,
     axisRotation,
     load
   }
