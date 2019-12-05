@@ -1,87 +1,86 @@
-const View = function View() {
-    function extractStickers(sqr) {
-        let stickers = sqr.pieces.map(p => {
-            return p.getSticker(sqr.orientation);
-        });
-        return stickers;
+const View = (function View() {
+  const dimensionColors = [
+    [ // dimension 3
+      '#11EE11', '#CCCCCC', '#EEAA11',
+      '#1111DD', '#EEEE11', '#EE1111'
+    ],
+    [ // dimension 4
+      '#FF7777', '#77FF77', '#FFFF77', '#7777FF',
+      '#770000', '#007700', '#777700', '#000077'
+    ],
+    [ // dimension 5
+      '#8080FF', '#00FFFF', '#80FF80', '#FFFF00', '#FF8080',
+      '#804000', '#800040', '#400080', '#004080', '#00C040'
+    ],
+    [ // dimension 6
+      '#8080FF', '#00FFFF', '#80FF80', '#FFFF00', '#FF8080', '#FF00FF',
+      '#804000', '#800040', '#400080', '#004080', '#00C040', '#408000'
+    ],
+    [ // dimension 7
+      '#8080FF', '#00FFFF', '#80FF80', '#FFFF00',
+      '#FF8080', '#FF00FF', '#C0C0C0',
+      '#804000', '#800040', '#400080', '#004080',
+      '#00C040', '#408000', '#404040'
+    ]
+  ]
+
+  class View {
+    constructor(cube, canvasId) {
+      this.canvas = document.getElementById(canvasId)
+      this.cube = cube
+      this.cells = []
     }
 
-    async function setCells() {
-        const dim3colors = [
-            "#11ee11", // green
-            "#cccccc", // white
-            "#eeaa11", // orange
-            "#1111dd", // blue
-            "#eeee11", // yellow
-            "#ee1111"  // red
-        ];
-        const dim4colors = [
-            "#FF7777", // light red
-            "#77FF77", // light green
-            "#FFFF77", // light yellow
-            "#7777FF", // light blue
-            "#770000", // dark red
-            "#007700", // dark green
-            "#777700", // dark yellow
-            "#000077"  // dark blue
-        ];
+    async setView() {
+      let orientation = Array.from(Array(2*this.cube.numDims))
+        .map((_, i) => i)
+      let sqrView = await Slice.create(this.cube, orientation, 2)
+      ;[this.numCols, this.numRows] = Array(2).fill(sqrView.dimSize)
 
-        let cube = this.cube;
-        let numDims = cube.dimensions.length;
-        let colors;
-        switch(numDims) {
-            case 3: colors = dim3colors; break;
-            case 4: colors = dim4colors; break;
-            default: colors = Array(2*numDims).fill("black");
-        }
-        let orientation = Array.from(Array(2*numDims)).map((_, i) => i);
-        let stickers = extractStickers(
-            await Slice.create(cube, orientation, 2));
-        let cells = this.cells;
-        stickers.forEach((v, ind) => {
-            cells[ind].style.backgroundColor = v >= 0? colors[v]: "white";
-            cells[ind].title = `Face ${v}`;
-        });
+      this.canvas.style.display = 'grid'
+      this.canvas.style.gridTemplateRows =
+        `repeat(${this.numRows}, 4em)`
+      this.canvas.style.gridTemplateColumns =
+        `repeat(${this.numCols}, 4em)`
+
+      for(let i = 0; i < this.numCols*this.numRows; i++) {
+        let cell = document.createElement('div')
+        cell.className = 'cell'
+        this.canvas.appendChild(cell)
+        this.cells.push(cell)
+      }
+
+      await this.setCells()
     }
 
-    async function setView() {
-        let orientation = Array.from(Array(2*this.cube.numDims))
-          .map((_, i) => i)
-        let sqrView = await Slice.create(this.cube, orientation, 2)
-        ;[this.numCols, this.numRows] = Array(2).fill(sqrView.dimSize);
+    async setCells() {
+      let colors = dimensionColors[this.cube.numDims-3]
+      let orientation = Array.from(Array(2*this.cube.numDims))
+        .map((_, i) => i)
+      let slice = await Slice.create(this.cube, orientation, 2)
+      let stickers = slice.indices.map(i => {
+        return slice.cube.pieces[i].getSticker(slice.orientation)
+      })
 
-        this.canvas.style.display = "grid";
-        this.canvas.style.gridTemplateRows =
-            `repeat(${this.numRows}, 4em)`;
-        this.canvas.style.gridTemplateColumns =
-            `repeat(${this.numCols}, 4em)`;
+      if(colors === undefined) {
+        colors = Array(2*this.cube.numDims).fill('black')
+      }
 
-        for(let i = 0; i < this.numCols*this.numRows; i++) {
-            let cell = document.createElement("div");
-            cell.className = "cell";
-            this.canvas.appendChild(cell);
-            this.cells.push(cell);
-        }
-
-        this.setCells();
+      stickers.forEach((v, i) => {
+        this.cells[i].style.backgroundColor = v >= 0? colors[v]: 'white'
+        this.cells[i].title = `Face ${v}`
+      })
     }
+  }
 
-    async function createView(cube, canvasId) {
-      let newView = new GameView(cube, canvasId)
-      await setView.apply(newView)
+  async function create(cube, canvasId) {
+    let newView = new View(cube, canvasId)
 
-      return newView
-    }
+    await newView.setView()
+    return newView
+  }
 
-    // constructor for GameView object
-    function GameView(cube, canvasId) {
-        this.canvas = document.getElementById(canvasId);
-        this.cube = cube;
-        this.cells = [];
-        this.setCells = setCells;
-    }
-
-    return {
-        createView
-    };
-}();
+  return {
+    create
+  }
+}())
