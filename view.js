@@ -29,21 +29,22 @@ const View = (function View() {
       this.canvas = document.getElementById(canvasId)
       this.cube = cube
       this.cells = []
+      this.layers = Array(cube.numDims-2).fill(0)
     }
 
     async setView() {
       let orientation = Array.from(Array(2*this.cube.numDims))
         .map((_, i) => i)
-      let sqrView = await Slice.create(this.cube, orientation, 2)
-      ;[this.numCols, this.numRows] = Array(2).fill(sqrView.dimSize)
+      let numCols = this.cube.dimSize
+      let numRows = this.cube.dimSize
 
       this.canvas.style.display = 'grid'
       this.canvas.style.gridTemplateRows =
-        `repeat(${this.numRows}, 4em)`
+        `repeat(${numRows}, 4em)`
       this.canvas.style.gridTemplateColumns =
-        `repeat(${this.numCols}, 4em)`
+        `repeat(${numCols}, 4em)`
 
-      for(let i = 0; i < this.numCols*this.numRows; i++) {
+      for(let i = 0; i < numCols*numRows; i++) {
         let cell = document.createElement('div')
         cell.className = 'cell'
         this.canvas.appendChild(cell)
@@ -57,7 +58,7 @@ const View = (function View() {
       let colors = dimensionColors[this.cube.numDims-3]
       let orientation = Array.from(Array(2*this.cube.numDims))
         .map((_, i) => i)
-      let slice = await Slice.create(this.cube, orientation, 2)
+      let slice = await Slice.create(this.cube, orientation, 2, this.layers)
       let stickers = slice.indices.map(i => {
         return slice.cube.pieces[i].getSticker(slice.orientation)
       })

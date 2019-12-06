@@ -69,9 +69,9 @@ const Modder = (function Modder() {
       })
     }
 
-    setHandler(handler, modder) {
+    setHandler(handler, modder, ...args) {
       this.button.addEventListener('click', async () => {
-        await handler.call(this, modder.cube)
+        await handler.call(this, ...args)
 
         modder.views.forEach(view => {
           view.setCells()
@@ -132,32 +132,67 @@ const Modder = (function Modder() {
     section.addRadio(radio)
   }
 
-  function create(cube, canvasId, tag) {
-    let modder = new Modder(cube, canvasId, tag)
+  function addOrientSection(modder, tag) {
     let orientSec = newSection(modder, 'Re-orient Cube', 'Rotate',
       `${tag}-rotButton`)
-    let twistSec = newSection(modder, 'Twist Cube', 'Twist',
-      `${tag}-twsButton`)
 
     newRadio(orientSec, 'Displayed Dimensions', `${tag}-dimX`,
       Array(2).fill(-1))
     newRadio(orientSec, 'Undisplayed Dimensions', `${tag}-dimY`,
-      Array(cube.numDims-2).fill(-1))
+      Array(modder.cube.numDims-2).fill(-1))
     newRadio(orientSec, 'Rotation Direction', `${tag}-rotD`,
       ['Forward', 'Backward'])
     orientSec.radios[2].node.addEventListener('click', () =>
       modder.update())
 
+    orientSec.setHandler(rotateCube, modder, modder.cube)
+  }
+
+  function addTwistSection(modder, tag) {
+    let twistSec = newSection(modder, 'Twist Cube', 'Twist',
+      `${tag}-twsButton`)
+
     newRadio(twistSec, 'Select Side', `${tag}-twsS`,
       ['Top', 'Left', 'Bottom', 'Right'])
     newRadio(twistSec, 'Twist Direction', `${tag}-twsD`,
       ['Forward', 'Backward'])
+    newRadio(twistSec, 'Twist Layer', `${tag}-twsL`,
+      Array.from(Array(~~(modder.cube.dimSize/2)))
+        .map((_, i) => `Layer ${i}`),
+      tag)
 
-    orientSec.setHandler(rotateCube, modder)
-    twistSec.setHandler(twistCube, modder)
+    twistSec.setHandler(twistCube, modder, modder.cube)
+  }
+
+  function addViewSection(modder, tag) {
+    let viewSec = newSection(modder, 'Change View', 'Change',
+        `${tag}-vewButton`)
+    for(let d = 3; d < modder.cube.numDims; d++) {
+      newRadio(viewSec, `Dimension ${d}`, `${tag}-vew${d}`,
+        Array.from(Array(~~(modder.cube.dimSize/2)))
+          .map((_, i) => `Layer ${i}`),
+        tag)
+    }
+
+    viewSec.setHandler(function(views) {
+      let newLayers = this.getOptions()
+      newLayers.push(0)
+      views.forEach(view => {
+        view.layers = newLayers
+      })
+    }, modder, modder.views)
+  }
+
+  function create(cube, canvasId, tag) {
+    let modder = new Modder(cube, canvasId, tag)
+
+    addOrientSection(modder, tag)
+    addTwistSection(modder, tag)
+    if (cube.numDims > 3 && cube.dimSize > 3) {
+      addViewSection(modder, tag)
+    }
 
     modder.update()
-
     return modder
   }
 
@@ -192,13 +227,14 @@ const Modder = (function Modder() {
     return orientation
   }
 
-  function calcTwistOrientations(numDims, sidePicked, twistDirection) {
+  function calcTwistOrientations(numDims, sidePicked,
+      twistDirection, layerChoice) {
     let twistSide = (4 + sidePicked + Math.pow(-1, twistDirection + 1)) % 4
 
     let dstOrientation = sideOrientation(numDims, sidePicked)
     let twsOrientation = sideOrientation(numDims, twistSide)
 
-    return [dstOrientation, twsOrientation]
+    return [dstOrientation, twsOrientation, layerChoice]
   }
 
   /*

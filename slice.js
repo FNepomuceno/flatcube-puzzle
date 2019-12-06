@@ -1,13 +1,13 @@
 const Slice = (function Slice() {
     class Slice {
-      constructor(cube, orientation, numDims) {
+      constructor(cube, orientation, numDims, layerChoices) {
         this.cube = cube
         this.orientation = Orientation.compose(cube.orientation,
           orientation)
         this.numDims = numDims
         this.dimSize = cube.dimSize
+        this.layerChoices = layerChoices
         this.indices = []
-        this.pieces = [] // to be removed soon
       }
 
       /*
@@ -44,6 +44,10 @@ const Slice = (function Slice() {
         let dimIndices = Array(this.cube.numDims).fill(0)
         let numIndices = Math.pow(this.dimSize, this.numDims)
 
+        this.layerChoices.forEach((v, i) => {
+          dimIndices[i+this.numDims] = v
+        })
+
         await Util.load((i) => {
           let indexVal = i
           let newIndex = 0
@@ -68,8 +72,8 @@ const Slice = (function Slice() {
   /*
     Creates a new Slice
   */
-  async function create(cube, orientation, numDims) {
-    let newSlice = new Slice(cube, orientation, numDims)
+  async function create(cube, orientation, numDims, layerChoices) {
+    let newSlice = new Slice(cube, orientation, numDims, layerChoices)
 
     await newSlice.setIndices()
     return newSlice
@@ -78,15 +82,16 @@ const Slice = (function Slice() {
   /*
     Twists a cube according to the side picked and twist direction
   */
-  async function twistCube(cube, sideOrientation, twistOrientation) {
+  async function twistCube(cube, sideOrientation,
+      twistOrientation, layerChoice) {
     let dstOrientation = sideOrientation
     let srcOrientation = Orientation.compose(twistOrientation,
       sideOrientation)
 
     let dstIndices = (await create(cube, dstOrientation,
-      cube.numDims-1)).indices
+      cube.numDims-1, [layerChoice])).indices
     let srcIndices = (await create(cube, srcOrientation,
-      cube.numDims-1)).indices
+      cube.numDims-1, [layerChoice])).indices
 
     let pieces = srcIndices.map(v => cube.pieces[v])
 
