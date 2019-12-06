@@ -4,8 +4,8 @@ const Flatcube = (function Flatcube() {
     let numDims
     let dimSize
 
-    if(urlParams.has('numDims')) {
-      let param = +urlParams.get('numDims')
+    if(urlParams.has('num-dims')) {
+      let param = +urlParams.get('num-dims')
       if(!isNaN(param) && param >= 3) {
         numDims = param
       } else {
@@ -15,8 +15,8 @@ const Flatcube = (function Flatcube() {
       numDims = 3
     }
 
-    if(urlParams.has('dimSize')) {
-      let param = +urlParams.get('dimSize')
+    if(urlParams.has('dim-size')) {
+      let param = +urlParams.get('dim-size')
       if(!isNaN(param) && param >= 2) {
         dimSize = param
       } else {
@@ -26,7 +26,7 @@ const Flatcube = (function Flatcube() {
       dimSize = 3
     }
 
-    if(Math.pow(dimSize, numDims) > 5000000) {
+    if(Math.pow(dimSize, numDims) > 100000) {
       console.error('Puzzle too large. Resetting to 3^3')
       numDims = 3
       dimSize = 3
