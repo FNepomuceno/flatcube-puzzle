@@ -1,4 +1,4 @@
-import { create as createCube } from './cube.mjs'
+import { create as createCube } from '../core/cube.mjs'
 import { create as createView } from './view.mjs'
 import { create as createModder } from './modder.mjs'
 

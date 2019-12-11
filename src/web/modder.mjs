@@ -1,5 +1,5 @@
-import { axisRotation } from './util.mjs'
-import { twistCube } from './slice.mjs'
+import { axisRotation } from '../core/util.mjs'
+import { twistCube } from '../core/slice.mjs'
 
 class Modder {
   constructor(cube, canvasId, tag) {

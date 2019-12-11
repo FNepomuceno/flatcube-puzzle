@@ -1,4 +1,4 @@
-import { create as createSlice } from './slice.mjs'
+import { create as createSlice } from '../core/slice.mjs'
 
 const dimensionColors = [
   [ // dimension 3
