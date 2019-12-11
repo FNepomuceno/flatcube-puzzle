@@ -1,5 +1,4 @@
 import { axisRotation } from '../core/util.mjs'
-import { twistCube } from '../core/slice.mjs'
 
 class Modder {
   constructor(cube, canvasId, tag) {
@@ -230,8 +229,8 @@ function calcTwistOrientations(numDims, sidePicked,
   Twists the cube according to the options set on the modder
 */
 async function makeTwist(cube) {
-  await twistCube(cube, ...calcTwistOrientations(
-    cube.numDims, ...this.getOptions()))
+  await cube.twist(
+    ...calcTwistOrientations(cube.numDims, ...this.getOptions()))
 }
 
 export function createModder(cube, canvasId, tag) {

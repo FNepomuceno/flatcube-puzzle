@@ -1,4 +1,4 @@
-import { createSlice } from '../core/slice.mjs'
+import { createSlice } from '../core/cube.mjs'
 
 const dimensionColors = [
   [ // dimension 3
@@ -57,9 +57,8 @@ class View {
 
   async setCells() {
     let colors = dimensionColors[this.cube.numDims-3]
-    let orientation = Array.from(Array(2*this.cube.numDims))
-      .map((_, i) => i)
-    let slice = await createSlice(this.cube, orientation, 2, this.layers)
+    let slice = await createSlice(this.cube, this.cube.orientation,
+      2, this.layers)
     let stickers = slice.indices.map(i => {
       return slice.cube.pieces[i].getSticker(slice.orientation)
     })
