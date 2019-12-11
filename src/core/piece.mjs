@@ -57,7 +57,7 @@ class Piece {
 /*
   Creates a new Piece
 */
-export function create(...stickersChosen) {
+export function createPiece(...stickersChosen) {
   let numDims = stickersChosen.length
   let newPiece = new Piece(numDims)
 

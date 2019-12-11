@@ -1,4 +1,4 @@
-import { create as createSlice } from '../core/slice.mjs'
+import { createSlice } from '../core/slice.mjs'
 
 const dimensionColors = [
   [ // dimension 3
@@ -75,7 +75,7 @@ class View {
   }
 }
 
-export async function create(cube, canvasId) {
+export async function createView(cube, canvasId) {
   let newView = new View(cube, canvasId)
 
   await newView.setView()

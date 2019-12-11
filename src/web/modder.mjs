@@ -234,7 +234,7 @@ async function makeTwist(cube) {
     cube.numDims, ...this.getOptions()))
 }
 
-export function create(cube, canvasId, tag) {
+export function createModder(cube, canvasId, tag) {
   let modder = new Modder(cube, canvasId, tag)
 
   addOrientSection(modder, tag)

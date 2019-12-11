@@ -1,6 +1,6 @@
-import { load as loadAsync } from './util.mjs'
+import { loadAsync } from './util.mjs'
 import { compose } from './orientation.mjs'
-import { create as createPiece } from './piece.mjs'
+import { createPiece } from './piece.mjs'
 
 class Cube {
   constructor(numDims, dimSize) {
@@ -48,7 +48,7 @@ class Cube {
 /*
   Creates a new Cube
 */
-export async function create(numDims=3, dimSize=3) {
+export async function createCube(numDims=3, dimSize=3) {
   let newCube = new Cube(numDims, dimSize)
 
   await newCube.setPieces()

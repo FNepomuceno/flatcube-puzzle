@@ -1,4 +1,4 @@
-import { load as loadAsync } from './util.mjs'
+import { loadAsync } from './util.mjs'
 import { compose } from './orientation.mjs'
 
 class Slice {
@@ -74,7 +74,8 @@ class Slice {
 /*
   Creates a new Slice
 */
-export async function create(cube, orientation, numDims, layerChoices) {
+export async function createSlice(cube, orientation,
+    numDims, layerChoices) {
   let newSlice = new Slice(cube, orientation, numDims, layerChoices)
 
   await newSlice.setIndices()
@@ -90,9 +91,9 @@ export async function twistCube(cube, sideOrientation,
   let srcOrientation = compose(twistOrientation,
     sideOrientation)
 
-  let dstIndices = (await create(cube, dstOrientation,
+  let dstIndices = (await createSlice(cube, dstOrientation,
     cube.numDims-1, [layerChoice])).indices
-  let srcIndices = (await create(cube, srcOrientation,
+  let srcIndices = (await createSlice(cube, srcOrientation,
     cube.numDims-1, [layerChoice])).indices
 
   let pieces = srcIndices.map(v => cube.pieces[v])

@@ -1,6 +1,6 @@
-import { create as createCube } from '../core/cube.mjs'
-import { create as createView } from './view.mjs'
-import { create as createModder } from './modder.mjs'
+import { createCube } from '../core/cube.mjs'
+import { createView } from './view.mjs'
+import { createModder } from './modder.mjs'
 
 export function getParams() {
   let urlParams = new URLSearchParams(window.location.search)

@@ -38,7 +38,7 @@ export function axisRotation(numDims, faceFrom, faceTo) {
 
   Note that the limit needs to be known ahead of time here
 */
-export async function load(cb=((_) => 0), limit=-1) {
+export async function loadAsync(cb=((_) => 0), limit=-1) {
   const threshold = 1000
   let totalCount = 0
   let iterCount = 0
