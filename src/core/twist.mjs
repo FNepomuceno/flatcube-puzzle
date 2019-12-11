@@ -49,7 +49,64 @@ export function calculateTwist(numDims, dimSize, baseOrientation,
     sideOrientation, twistOrientation, layerPicked) {
   let facePicked = compose(baseOrientation, sideOrientation)[0]
   let orAction = conjugate(invert(sideOrientation), invert(twistOrientation))
+
   return createTwist(numDims, dimSize, facePicked, layerPicked, orAction)
+}
+
+export function randomTwist(numDims=3, dimSize=3, facePicked=-1,
+    layerPicked=-1) {
+  if (facePicked < 0) facePicked = Math.floor(2*numDims*Math.random())
+  if (layerPicked < 0) {
+    layerPicked = Math.floor(Math.floor(dimSize/2)*Math.random())
+  }
+
+  let faces = [facePicked % numDims]
+  let sides = [+(facePicked >= numDims)]
+  let choices = Array.from(Array(numDims-1))
+    .map((_, i) => (i+faces[0]+1) % numDims)
+  let numFlips = sides[0]
+  let canBeDefault = true
+
+  for(let i = numDims-1; i > 0; i--) {
+    let numChoices = (i !== 2 && canBeDefault)? 2*i: 2*i-1
+    let minChoice = (i !== 2 && canBeDefault)? 0: 1
+    let choice = minChoice+Math.floor(numChoices*Math.random())
+    if (choice !== 0) canBeDefault = false
+
+    let newFace = choices[choice % i]
+    let newSide = +(choice >= i)
+
+    faces.push(newFace)
+    sides.push(newSide)
+    if (newSide >= 1) numFlips += 1
+    choices = choices.filter(n => n !== newFace)
+  }
+
+  let numSwaps = 0
+  let sortingArray = Array.from(faces)
+  for(let i = 0; i < numDims; i++) {
+    let index = sortingArray[i]
+    while(index != i) {
+      [sortingArray[i], sortingArray[index]] =
+        [sortingArray[index], sortingArray[i]]
+      numSwaps++
+      index = sortingArray[i]
+    }
+  }
+  numFlips += numSwaps % 2
+
+  if (numFlips % 2 === 1) {
+    sides[numDims-1] = (sides[numDims-1] + 1) % 2
+  }
+
+  let orientation = faces.map((v, i) => v + numDims*sides[i])
+  orientation = orientation.concat(
+    orientation.map(v => (v + numDims) % (2*numDims)))
+
+  let action = compose(orientation,
+    invert(defaultOrientation(numDims, facePicked)))
+
+  return createTwist(numDims, dimSize, facePicked, layerPicked, action)
 }
 
 export function defaultOrientation(numDims=3, facePicked=0) {
