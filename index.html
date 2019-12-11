@@ -1,12 +1,18 @@
 <!doctype html>
 <html>
 <head>
-<title>FlatCube Puzzle v0.3.1</title>
+<title>FlatCube Puzzle v0.3.2</title>
 <style>
+html {
+    min-height: 100%;
+    display: flex;
+    flex-direction: column;
+}
 body {
     margin: 0;
-    display:flex;
+    display: flex;
     flex-direction: column;
+    flex-grow: 1;
 }
 body div.center {
     flex-grow: 1;
@@ -65,7 +71,7 @@ body div.center {
 <div class="center">
   <div class="left-side"></div>
   <div class="container">
-    <h1>FlatCube Puzzle v0.3.1</h1>
+    <h1>FlatCube Puzzle v0.3.2</h1>
     <div class="center">
       <div class="field">
         <div id="game-view"></div>
@@ -87,16 +93,6 @@ not do this when not intended.</p>
   </div>
   <div class="right-side"></div>
 </div>
-<script src="util.js"></script>
-<script src="orientation.js"></script>
-<script src="piece.js"></script>
-<script src="cube.js"></script>
-<script src="slice.js"></script>
-<script src="view.js"></script>
-<script src="modder.js"></script>
-<script src="flatcube.js"></script>
-<script>
-Flatcube.run(...Flatcube.getParams());
-</script>
+<script type="module" src="flatcube.mjs"></script>
 </body>
 </html>
