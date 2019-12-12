@@ -1,4 +1,5 @@
 import { createCube } from '../core/cube.mjs'
+import { scramble } from '../core/log.mjs'
 import { createView } from './view.mjs'
 import { createModder } from './modder.mjs'
 
@@ -40,6 +41,7 @@ export function getParams() {
 
 export async function run(numDims, dimSize) {
   let puz = await createCube(numDims, dimSize)
+  await scramble(puz)
   let vew = await createView(puz, 'game-view')
   let gam = createModder(puz, 'game-options', 'cube')
   gam.addView(vew, 'main')

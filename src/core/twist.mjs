@@ -62,11 +62,10 @@ export function randomTwist(numDims=3, dimSize=3, facePicked=-1,
     layerPicked = Math.floor(Math.floor(dimSize/2)*Math.random())
   }
 
-  let faces = [facePicked % numDims]
-  let sides = [+(facePicked >= numDims)]
-  let choices = Array.from(Array(numDims-1))
-    .map((_, i) => (i+faces[0]+1) % numDims)
-  let numFlips = sides[0]
+  let faces = [0]
+  let sides = [0]
+  let choices = Array.from(Array(numDims-1)).map((_, i) => i+1)
+  let numFlips = 0
   let canBeDefault = true
 
   for(let i = numDims-1; i > 0; i--) {
@@ -105,8 +104,7 @@ export function randomTwist(numDims=3, dimSize=3, facePicked=-1,
   orientation = orientation.concat(
     orientation.map(v => (v + numDims) % (2*numDims)))
 
-  let action = compose(orientation,
-    invert(defaultOrientation(numDims, facePicked)))
+  let action = orientation
 
   return createTwist(numDims, dimSize, facePicked, layerPicked, action)
 }
