@@ -1,6 +1,5 @@
 import { loadAsync } from './util.mjs'
 import { compose } from './orientation.mjs'
-import { calculateTwist } from './twist.mjs'
 import { createPiece } from './piece.mjs'
 
 class Cube {
@@ -49,21 +48,19 @@ class Cube {
     return createSlice(this, orientation, this.numDims-1, [layerChoice])
   }
 
-  async twist(sideOrientation, twistOrientation, layerChoice) {
-    let twist = calculateTwist(this.numDims, this.dimSize,
-      this.orientation, sideOrientation, twistOrientation, layerChoice)
-    let { srcOrientation, dstOrientation } = twist
+  async twist(twist) {
+    let { srcOrientation, dstOrientation, twsOrientation } = twist
 
-    let srcIndices = (await this.twistSlice(srcOrientation, layerChoice))
-      .indices
-    let dstIndices = (await this.twistSlice(dstOrientation, layerChoice))
-      .indices
+    let srcIndices =
+      (await this.twistSlice(srcOrientation, twist.layerPicked)).indices
+    let dstIndices =
+      (await this.twistSlice(dstOrientation, twist.layerPicked)).indices
 
     let pieces = srcIndices.map(v => this.pieces[v])
 
     await loadAsync((i) => {
       let piece = pieces[i]
-      piece.twist(twistOrientation, this.orientation)
+      piece.twist(twsOrientation)
       this.pieces[dstIndices[i]] = piece
     }, pieces.length)
   }

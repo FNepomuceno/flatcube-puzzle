@@ -8,10 +8,11 @@ class Twist {
     this.layerPicked = layerPicked
     this.orAction = orAction
 
-    let { srcOrientation, dstOrientation} =
+    let { srcOrientation, dstOrientation, twsOrientation } =
       this.calculateEffectiveOrientations()
     this.srcOrientation = srcOrientation
     this.dstOrientation = dstOrientation
+    this.twsOrientation = twsOrientation
 
     this.id = this.getId()
   }
@@ -35,7 +36,8 @@ class Twist {
   calculateEffectiveOrientations() {
     let srcOrientation = defaultOrientation(this.numDims, this.facePicked)
     let dstOrientation = compose(srcOrientation, this.orAction)
-    return { srcOrientation, dstOrientation }
+    let twsOrientation = conjugate(srcOrientation, invert(this.orAction))
+    return { srcOrientation, dstOrientation, twsOrientation }
   }
 }
 

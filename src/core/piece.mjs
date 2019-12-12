@@ -1,4 +1,4 @@
-import { compose, conjugate } from './orientation.mjs'
+import { compose } from './orientation.mjs'
 
 class Piece {
   constructor(numDims) {
@@ -37,20 +37,16 @@ class Piece {
     and not just the default orientation, called the context
     orientation (ctxOrientation)
   */
-  twist(twsOrientation, ctxOrientation) {
-    let resOrientation = conjugate(ctxOrientation,
-      twsOrientation)
-    this.orientation = compose(this.orientation,
-      resOrientation);
+  twist(twsOrientation) {
+    this.orientation = compose(this.orientation, twsOrientation)
   }
 
   /*
     Gets the sticker from some orientation of the cube
   */
   getSticker(ctxOrientation) {
-    let stkOrientation = compose(this.orientation,
-      ctxOrientation);
-    return this.stickers[stkOrientation[0]];
+    let stkOrientation = compose(this.orientation, ctxOrientation)
+    return this.stickers[stkOrientation[0]]
   }
 }
 
