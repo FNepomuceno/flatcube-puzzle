@@ -47,6 +47,13 @@ export function createTwist(numDims, dimSize, facePicked,
   return twist
 }
 
+export function invertTwist(twist) {
+  let { numDims, dimSize, facePicked, layerPicked } = twist
+  let orAction = invert(twist.orAction)
+
+  return createTwist(numDims, dimSize, facePicked, layerPicked, orAction)
+}
+
 export function calculateTwist(numDims, dimSize, baseOrientation,
     sideOrientation, twistOrientation, layerPicked) {
   let facePicked = compose(baseOrientation, sideOrientation)[0]

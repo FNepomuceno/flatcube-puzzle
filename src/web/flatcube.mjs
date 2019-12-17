@@ -47,6 +47,3 @@ export async function run(numDims, dimSize) {
   gam.addView(vew, 'main')
 }
 
-// Run the Flatcube program
-run(...getParams());
-
