@@ -18,7 +18,7 @@ class Controller {
   }
 
   async undoMove(numMoves=1) {
-    if(!this.canMove) raise Error('Move still in progress')
+    if (!this.canMove) throw Error('Move still in progress')
 
     this.canMove = false
     for(let i = 0; i < numMoves && this.history.canUndo(); i++) {
@@ -29,7 +29,7 @@ class Controller {
   }
 
   async redoMove(numMoves=1) {
-    if(!this.canMove) raise Error('Move still in progress')
+    if(!this.canMove) throw Error('Move still in progress')
 
     this.canMove = false
     for(let i = 0; i < numMoves && this.history.canRedo(); i++) {
