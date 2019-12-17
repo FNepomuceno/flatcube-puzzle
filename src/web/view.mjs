@@ -1,4 +1,4 @@
-import { createSlice } from '../core/cube.mjs'
+import { createView as createModelView } from '../core/view.mjs'
 
 const dimensionColors = [
   [ // dimension 3
@@ -29,13 +29,11 @@ class View {
   constructor(cube, canvasId) {
     this.canvas = document.getElementById(canvasId)
     this.cube = cube
+    this.view = null
     this.cells = []
-    this.layers = Array(cube.numDims-2).fill(0)
   }
 
   async setView() {
-    let orientation = Array.from(Array(2*this.cube.numDims))
-      .map((_, i) => i)
     let numCols = this.cube.dimSize
     let numRows = this.cube.dimSize
 
@@ -52,16 +50,15 @@ class View {
       this.cells.push(cell)
     }
 
+    this.view = await createModelView(this.cube)
     await this.setCells()
   }
 
   async setCells() {
+    await this.view.update()
+
+    let stickers = this.view.stickers
     let colors = dimensionColors[this.cube.numDims-3]
-    let slice = await createSlice(this.cube, this.cube.orientation,
-      2, this.layers)
-    let stickers = slice.indices.map(i => {
-      return slice.cube.pieces[i].getSticker(slice.orientation)
-    })
 
     if(colors === undefined) {
       colors = Array(2*this.cube.numDims).fill('black')
