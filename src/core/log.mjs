@@ -3,7 +3,7 @@ import { randomTwist } from './twist.mjs'
 // Module for loading/saving log files
 // And for scrambling/resetting the puzzle
 
-export async function scramble(cube, numMoves=500) {
+export async function scramble(cube, numMoves=1000) {
   let numDims = cube.numDims
   let dimSize = cube.dimSize
   let facePicked = Math.floor(2*numDims*Math.random())
