@@ -80,7 +80,8 @@ class History {
     this.twists.splice(this.moveCount)
 
     // add new move on top
-    this.twists.append(twist)
+    this.twists.push(twist)
+    this.moveCount++
   }
 }
 
@@ -91,14 +92,11 @@ export function createController(cube) {
 // controller apply twist
 export async function applyTwist(controller, baseFace, sideFace,
     twistFace, layerPicked) {
-  // example 2-0-0-5-1 twist can be from 0-2-4
-  // twistOrientation is [4, 0, 2, 1, 3, 5]
-  // sideOrientation is [2, 3, 4, 5, 0, 1] twist.defaultOrientation(3, 2)
-  // orAction is [0, 5, 1, 3, 2, 4]???
   let { numDims, dimSize } = controller.cube
   let twistOrientation = cycleOrientation(numDims, baseFace, twistFace)
   let sideOrientation = defaultOrientation(numDims, sideFace)
-  let orAction = conjugate(invert(sideOrientation), twistOrientation)
+  let orAction = conjugate(invert(sideOrientation),
+    invert(twistOrientation))
 
   let twist = createTwist(numDims, dimSize, sideFace, layerPicked, orAction)
   controller.history.move(twist)

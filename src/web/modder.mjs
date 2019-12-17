@@ -1,9 +1,11 @@
 import { axisRotation } from '../core/util.mjs'
 import { calculateTwist } from '../core/twist.mjs'
+import { createController, applyTwist } from '../core/controller.mjs'
 
 class Modder {
   constructor(cube, canvasId, tag) {
     this.cube = cube
+    this.controller = createController(cube)
     this.canvas = document.getElementById(canvasId)
     this.tag = tag
     this.views = new Map()
@@ -163,7 +165,7 @@ function addTwistSection(modder, tag) {
       .map((_, i) => `Layer ${i}`),
     tag)
 
-  twistSec.setHandler(makeTwist, modder, modder.cube)
+  twistSec.setHandler(makeTwist, modder, modder.cube, modder.controller)
 }
 
 function addViewSection(modder, tag) {
@@ -204,40 +206,21 @@ function rotateCube(cube) {
   cube.rotate(calcRotateOrientation(cube.numDims, ...this.getOptions()))
 }
 
-function sideOrientation(numDims, sidePicked) {
-  // convert to chosen/unchosen in other handler
-  let dimA = numDims-2+(sidePicked % 2), dimB = 0
-  let direction = +(sidePicked >= 2)
-
-  // generate cycle and orientation
-  let dimRotation = direction == 0? [dimA, dimB]: [dimB, dimA]
-  let orientation = axisRotation(numDims, ...dimRotation)
-
-  return orientation
-}
-
-function calcTwistOrientations(numDims, sidePicked,
-    twistDirection, layerChoice) {
-  let twistSide = (4 + sidePicked + Math.pow(-1, twistDirection + 1)) % 4
-
-  let dstOrientation = sideOrientation(numDims, sidePicked)
-  let twsOrientation = sideOrientation(numDims, twistSide)
-
-  return [dstOrientation, twsOrientation, layerChoice]
-}
-
 /*
   Twists the cube according to the options set on the modder
 */
-async function makeTwist(cube) {
-  let [
-    dstOrientation,
-    twsOrientation,
-    layerChoice
-  ] = calcTwistOrientations(cube.numDims, ...this.getOptions())
-  let twist = calculateTwist(cube.numDims, cube.dimSize,
-    cube.orientation, dstOrientation, twsOrientation, layerChoice)
-  await cube.twist(twist)
+async function makeTwist(cube, controller) {
+  let numDims = cube.numDims
+  let [sidePicked, twistDirection, layerPicked] = this.getOptions()
+  let baseFace = cube.orientation[0]
+
+  let sideChoices = [numDims-2, numDims-1, 2*numDims-2, 2*numDims-1]
+  let sideFace = cube.orientation[sideChoices[sidePicked]]
+
+  let sideOffset = Math.pow(-1, twistDirection)
+  let twistFace = cube.orientation[sideChoices[(4+sidePicked+sideOffset)%4]]
+
+  await applyTwist(controller, baseFace, sideFace, twistFace, layerPicked)
 }
 
 export function createModder(cube, canvasId, tag) {
