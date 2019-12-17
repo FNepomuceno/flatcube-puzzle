@@ -1,6 +1,6 @@
 import { axisRotation } from '../core/util.mjs'
 import { calculateTwist } from '../core/twist.mjs'
-import { createController, applyTwist } from '../core/controller.mjs'
+import { createController } from '../core/controller.mjs'
 
 class Modder {
   constructor(cube, canvasId, tag) {
@@ -20,6 +20,7 @@ class Modder {
 
   addView(view, key) {
     this.views.set(key, view)
+    this.controller.addView(view.view)
   }
 
   update() {
@@ -149,7 +150,7 @@ function addOrientSection(modder, tag) {
   orientSec.radios[2].node.addEventListener('click', () =>
     modder.update())
 
-  orientSec.setHandler(rotateCube, modder, modder.cube)
+  orientSec.setHandler(rotateCube, modder, modder.cube, modder.controller)
 }
 
 function addTwistSection(modder, tag) {
@@ -202,8 +203,10 @@ function calcRotateOrientation(numDims, displayedChoice,
 /*
   Rotates the cube according to the options set on the modder
 */
-function rotateCube(cube) {
+async function rotateCube(cube, controller) {
+  // Put this in controller
   cube.rotate(calcRotateOrientation(cube.numDims, ...this.getOptions()))
+  await controller.updateViews()
 }
 
 /*
@@ -220,7 +223,7 @@ async function makeTwist(cube, controller) {
   let sideOffset = Math.pow(-1, twistDirection)
   let twistFace = cube.orientation[sideChoices[(4+sidePicked+sideOffset)%4]]
 
-  await applyTwist(controller, baseFace, sideFace, twistFace, layerPicked)
+  await controller.applyTwist(baseFace, sideFace, twistFace, layerPicked)
 }
 
 export function createModder(cube, canvasId, tag) {

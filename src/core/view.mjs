@@ -27,7 +27,7 @@ class View {
   }
 }
 
-export async function createView(cube, orientation, layers) {
+export function createView(cube, orientation, layers) {
     if (orientation === undefined) {
       orientation = defaultOrientation(cube.numDims)
     }
@@ -36,7 +36,6 @@ export async function createView(cube, orientation, layers) {
     }
 
     let view = new View(cube, orientation, layers)
-    await view.update()
 
     return view
 }

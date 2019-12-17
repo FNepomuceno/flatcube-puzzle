@@ -17,14 +17,30 @@ class Controller {
     this.canMove = true
   }
 
+  async applyTwist(baseFace, sideFace, twistFace, layerPicked) {
+    let { numDims, dimSize } = this.cube
+    let twistOrientation = cycleOrientation(numDims, baseFace, twistFace)
+    let sideOrientation = defaultOrientation(numDims, sideFace)
+    let orAction = conjugate(invert(sideOrientation),
+      invert(twistOrientation))
+    let twist = createTwist(numDims, dimSize, sideFace,
+      layerPicked, orAction)
+
+    this.canMove = false
+    this.history.move(twist)
+    await this.cube.twist(twist)
+    await this.updateViews()
+    this.canMove = true
+  }
+
   async undoMove(numMoves=1) {
     if (!this.canMove) throw Error('Move still in progress')
 
     this.canMove = false
     for(let i = 0; i < numMoves && this.history.canUndo(); i++) {
-      this.cube.twist(this.history.undo())
+      await this.cube.twist(this.history.undo())
     }
-    // Then update views
+    await this.updateViews()
     this.canMove = true
   }
 
@@ -33,10 +49,18 @@ class Controller {
 
     this.canMove = false
     for(let i = 0; i < numMoves && this.history.canRedo(); i++) {
-      this.cube.twist(this.history.redo())
+      await this.cube.twist(this.history.redo())
     }
-    // Then update views
+    await this.updateViews()
     this.canMove = true
+  }
+
+  addView(view) {
+    this.views.push(view)
+  }
+
+  updateViews() {
+    return Promise.all(this.views.map(view => { view.update() }))
   }
 }
 
@@ -89,16 +113,3 @@ export function createController(cube) {
   return new Controller(cube)
 }
 
-// controller apply twist
-export async function applyTwist(controller, baseFace, sideFace,
-    twistFace, layerPicked) {
-  let { numDims, dimSize } = controller.cube
-  let twistOrientation = cycleOrientation(numDims, baseFace, twistFace)
-  let sideOrientation = defaultOrientation(numDims, sideFace)
-  let orAction = conjugate(invert(sideOrientation),
-    invert(twistOrientation))
-
-  let twist = createTwist(numDims, dimSize, sideFace, layerPicked, orAction)
-  controller.history.move(twist)
-  await controller.cube.twist(twist)
-}

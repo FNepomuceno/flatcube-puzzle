@@ -50,13 +50,12 @@ class View {
       this.cells.push(cell)
     }
 
-    this.view = await createModelView(this.cube)
+    this.view = createModelView(this.cube)
+    await this.view.update()
     await this.setCells()
   }
 
   async setCells() {
-    await this.view.update()
-
     let stickers = this.view.stickers
     let colors = dimensionColors[this.cube.numDims-3]
 
