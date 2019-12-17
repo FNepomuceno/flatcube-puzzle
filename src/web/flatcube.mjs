@@ -7,6 +7,7 @@ export function getParams() {
   let urlParams = new URLSearchParams(window.location.search)
   let numDims
   let dimSize
+  let scrambleTurns
 
   if(urlParams.has('num-dims')) {
     let param = +urlParams.get('num-dims')
@@ -30,18 +31,25 @@ export function getParams() {
     dimSize = 3
   }
 
+  if(urlParams.has('scramble-turns')) {
+    let param = +urlParams.get('scramble-turns')
+    scrambleTurns = param
+  } else {
+    scrambleTurns = 0
+  }
+
   if(Math.pow(dimSize, numDims) > 100000) {
     console.error('Puzzle too large. Resetting to 3^3')
     numDims = 3
     dimSize = 3
   }
 
-  return [numDims, dimSize]
+  return [numDims, dimSize, scrambleTurns]
 }
 
-export async function run(numDims, dimSize) {
+export async function run(numDims, dimSize, scrambleTurns) {
   let puz = await createCube(numDims, dimSize)
-  await scramble(puz)
+  await scramble(puz, scrambleTurns)
   let vew = await createView(puz, 'game-view')
   let gam = createModder(puz, 'game-options', 'cube')
   gam.addView(vew, 'main')
