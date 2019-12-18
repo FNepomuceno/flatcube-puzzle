@@ -72,18 +72,18 @@ async function rotateCube(controller, values) {
   Twists the cube according to the options set on the modder
 */
 async function makeTwist(controller, values) {
-  let cube = controller.cube
-  let numDims = cube.numDims
+  let { numDims, orientation } = controller.cube
   let [sidePicked, twistDirection, layerPicked] = values
-  let baseFace = cube.orientation[0]
+  let baseFace = orientation[0]
 
   let sideChoices = [numDims-2, numDims-1, 2*numDims-2, 2*numDims-1]
-  let sideFace = cube.orientation[sideChoices[sidePicked]]
+  let sideFace = orientation[sideChoices[sidePicked]]
 
   let sideOffset = Math.pow(-1, twistDirection)
-  let twistFace = cube.orientation[sideChoices[(4+sidePicked+sideOffset)%4]]
+  let twistFace = orientation[sideChoices[(4+sidePicked+sideOffset)%4]]
 
   await controller.applyTwist(baseFace, sideFace, twistFace, layerPicked)
+  if(await controller.cube.isSolved()) console.info('You solved the cube!')
 }
 
 async function changeLayers(controller, values) {

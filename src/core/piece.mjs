@@ -3,7 +3,6 @@ import { compose } from './orientation.mjs'
 class Piece {
   constructor(numDims) {
     this.numDims = numDims
-    this.dimensions = numDims // old name for numDims
     this.stickers = Array.from(Array(2*numDims)).map((_, i) => i)
     this.orientation = Array.from(Array(2*numDims)).map((_, i) => i)
   }
@@ -27,6 +26,18 @@ class Piece {
         this.stickers[i+this.numDims] = -1
       }
     }
+  }
+
+  matchesStickers(...stickersChosen) {
+    for (let i=0; i < 2*this.numDims; i++) {
+      if(stickersChosen[i%this.numDims] !== i && this.stickers[i] !== -1) {
+        return false
+      }
+      if(stickersChosen[i%this.numDims] === i && this.stickers[i] !== i) {
+        return false
+      }
+    }
+    return true
   }
 
   /*

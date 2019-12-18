@@ -7,8 +7,32 @@ class Cube {
     this.pieces = []
     this.numDims = numDims
     this.dimSize = dimSize
-    this.dimensions = Array(numDims).fill(dimSize) // old var
     this.orientation = Array.from(Array(2*numDims)).map((_, i) => i)
+  }
+
+  async isSolved() {
+    let numPieces = Math.pow(this.dimSize, this.numDims)
+    let stickersChosen = Array.from(Array(this.numDims))
+    let numUnsolvedPieces = 0
+
+    await loadAsync((i) => {
+      let pieceVal = i
+      let piece = this.pieces[i]
+
+      for (let j = 0; j < this.numDims; j++) {
+        let pieceMod = pieceVal % this.dimSize
+        let choice = pieceMod === 0? this.numDims-1-j:
+          pieceMod === this.dimSize-1? 2*this.numDims-1-j: -1
+
+        stickersChosen[this.numDims-1-j] = choice
+        pieceVal = ~~(pieceVal/this.dimSize)
+      }
+      if(!piece.matchesStickers(...stickersChosen)) {
+        numUnsolvedPieces++
+      }
+    }, numPieces)
+
+    return numUnsolvedPieces === 0
   }
 
   /*
