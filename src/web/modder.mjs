@@ -129,8 +129,21 @@ export function createModder(cube, canvasId, tag) {
   }
 
   modder.addOption(createOption(cube, tag, 'option'), 'option')
-  modder.setHandler('option', (controller, values) => {
-    console.log(controller, inputs)
+  modder.setHandler('option', async (controller, values) => {
+    const options = [
+      ['reset', 'load', 'save'],
+      ['undo', 'redo', 'begin', 'end']
+    ]
+    let type = options[values[0]][values[values[0]+1]]
+    const actions = new Map([
+      ['undo', (controller) => controller.undoMove(1)],
+      ['redo', (controller) => controller.redoMove(1)],
+      ['begin', (controller) => controller.undoMove()],
+      ['end', (controller) => controller.redoMove()]
+    ])
+    let action = actions.get(type) ||
+      (() => { throw Error('Move not implemented') })
+    await action(controller)
   })
 
   modder.update()

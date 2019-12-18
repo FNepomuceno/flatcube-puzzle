@@ -33,22 +33,26 @@ class Controller {
     this.canMove = true
   }
 
-  async undoMove(numMoves=1) {
+  async undoMove(numMoves=-1) {
     if (!this.canMove) throw Error('Move still in progress')
+    if (!this.history.canUndo()) throw Error('Cannot undo')
 
     this.canMove = false
-    for(let i = 0; i < numMoves && this.history.canUndo(); i++) {
+    for(let i = 0; i < numMoves || numMoves < 0; i++) {
+      if(!this.history.canUndo()) break
       await this.cube.twist(this.history.undo())
     }
     await this.updateViews()
     this.canMove = true
   }
 
-  async redoMove(numMoves=1) {
+  async redoMove(numMoves=-1) {
     if(!this.canMove) throw Error('Move still in progress')
+    if (!this.history.canRedo()) throw Error('Cannot redo')
 
     this.canMove = false
-    for(let i = 0; i < numMoves && this.history.canRedo(); i++) {
+    for(let i = 0; i < numMoves || numMoves < 0; i++) {
+      if(!this.history.canRedo()) break
       await this.cube.twist(this.history.redo())
     }
     await this.updateViews()
@@ -82,7 +86,7 @@ class History {
   }
 
   undo() {
-    let twist = invertTwist(this.twists[this.moveCount])
+    let twist = invertTwist(this.twists[this.moveCount-1])
 
     if (this.canUndo()) this.moveCount--
     else return null
@@ -93,7 +97,7 @@ class History {
   redo() {
     let twist = this.twists[this.moveCount]
 
-    if (this.canUndo()) this.moveCount++
+    if (this.canRedo()) this.moveCount++
     else return null
 
     return twist
