@@ -1,21 +1,19 @@
 import { axisRotation } from '../core/util.mjs'
-import { calculateTwist } from '../core/twist.mjs'
 import { createController } from '../core/controller.mjs'
+import { createOption } from './option.mjs'
 
 class Modder {
   constructor(cube, canvasId, tag) {
-    this.cube = cube
     this.controller = createController(cube)
     this.canvas = document.getElementById(canvasId)
-    this.tag = tag
     this.views = new Map()
-    this.sections = [] // corresponds with orient, twist, ...
+    this.options = new Map() // corresponds with orient, twist, ...
     // and contains the inputs and buttons
   }
 
-  addSection(section) {
-    this.sections.push(section)
-    this.canvas.appendChild(section.node)
+  addOption(option, type) {
+    this.options.set(type, option)
+    this.canvas.appendChild(option.node)
   }
 
   addView(view, key) {
@@ -24,170 +22,24 @@ class Modder {
   }
 
   update() {
-    let { orientation, numDims } = this.cube
-    let chosenLabels = this.sections[0].radios[0].labels
-    let unchosenLabels = this.sections[0].radios[1].labels
-    let dirChoice = +(this.sections[0].radios[2].radios
-      .filter(elem => elem.checked)[0].value)
-    const labelDirections = [['Left', 'Top'], ['Right', 'Bottom']]
-
-    chosenLabels.forEach((label, i) => {
-      label.innerHTML = (orientation[numDims-1-i+dirChoice*numDims])
-        + ' (' + labelDirections[dirChoice][i] + ')'
-    })
-    unchosenLabels.forEach((label, i) => {
-      label.innerHTML = orientation[numDims-1-(i+2)]
-    })
-  }
-}
-
-class ModSection {
-  constructor(title) {
-    this.node = document.createElement('div')
-    this.title = document.createElement('h3')
-    this.radios = []
-    this.button = document.createElement('button')
-
-    this.title.innerHTML = title
-    this.node.appendChild(this.title)
+    let { orientation, numDims } = this.controller.cube
+    // TODO: Fix labels for displayed and undisplayed dimensions
   }
 
-  addRadio(radio) {
-    this.radios.push(radio)
-    this.node.insertBefore(radio.node, this.button)
-  }
+  setHandler(type, cb=()=>0, ...args) {
+    let option = this.options.get(type)
+    let button = option.node.getElementsByTagName('button')[0]
+    button.addEventListener('click', async () => {
+      await cb(this.controller, option.poll())
 
-  /*
-    Sets the button of the newly created object
-  */
-  setButton(btnValue, btnId) {
-    this.button.type = 'button'
-    this.button.id = btnId
-    this.button.innerHTML = btnValue
-    this.button.style.marginTop = '1em'
-    this.node.appendChild(this.button)
-  }
-
-  getOptions() {
-    return this.radios.map(radio => {
-      return +(radio.radios.filter(elem => elem.checked)[0].value)
-    })
-  }
-
-  setHandler(handler, modder, ...args) {
-    this.button.addEventListener('click', async () => {
-      await handler.call(this, ...args)
-
-      modder.views.forEach(view => {
+      this.views.forEach(view => {
         view.setCells()
       })
-
-      modder.update()
     })
   }
 }
 
-class ModRadio {
-  constructor(title) {
-    this.node = document.createElement('div')
-    this.title = document.createElement('h4')
-    this.radios = []
-    this.labels = []
-
-    this.title.innerHTML = title
-    this.node.appendChild(this.title)
-  }
-
-  setRadios(name, values) {
-    values.forEach((value, i) => {
-      let newContainer = document.createElement('div')
-      let newRadio = document.createElement('input')
-      let newLabel = document.createElement('label')
-
-      newRadio.type = 'radio'
-      newRadio.name = name
-      newRadio.value = i
-      newRadio.id = `${name}-${i}`
-      if (i === 0) newRadio.checked = true
-      newLabel.htmlFor = newRadio.id
-      newLabel.innerHTML = value
-
-      this.radios.push(newRadio)
-      this.labels.push(newLabel)
-      newContainer.appendChild(newRadio)
-      newContainer.appendChild(newLabel)
-      this.node.appendChild(newContainer)
-    })
-  }
-}
-
-function newSection(modder, title, btnValue, btnId) {
-  let section = new ModSection(title)
-
-  section.setButton(btnValue, btnId)
-  modder.addSection(section)
-
-  return section
-}
-
-function newRadio(section, title, name, values) {
-  let radio = new ModRadio(title)
-
-  radio.setRadios(name, values)
-  section.addRadio(radio)
-}
-
-function addOrientSection(modder, tag) {
-  let orientSec = newSection(modder, 'Re-orient Cube', 'Rotate',
-    `${tag}-rotButton`)
-
-  newRadio(orientSec, 'Displayed Dimensions', `${tag}-dimX`,
-    Array(2).fill(-1))
-  newRadio(orientSec, 'Undisplayed Dimensions', `${tag}-dimY`,
-    Array(modder.cube.numDims-2).fill(-1))
-  newRadio(orientSec, 'Rotation Direction', `${tag}-rotD`,
-    ['Forward', 'Backward'])
-  orientSec.radios[2].node.addEventListener('click', () =>
-    modder.update())
-
-  orientSec.setHandler(rotateCube, modder, modder.cube, modder.controller)
-}
-
-function addTwistSection(modder, tag) {
-  let twistSec = newSection(modder, 'Twist Cube', 'Twist',
-    `${tag}-twsButton`)
-
-  newRadio(twistSec, 'Select Side', `${tag}-twsS`,
-    ['Top', 'Left', 'Bottom', 'Right'])
-  newRadio(twistSec, 'Twist Direction', `${tag}-twsD`,
-    ['Forward', 'Backward'])
-  newRadio(twistSec, 'Twist Layer', `${tag}-twsL`,
-    Array.from(Array(~~(modder.cube.dimSize/2)))
-      .map((_, i) => `Layer ${i}`),
-    tag)
-
-  twistSec.setHandler(makeTwist, modder, modder.cube, modder.controller)
-}
-
-function addViewSection(modder, tag) {
-  let viewSec = newSection(modder, 'Change View', 'Change',
-      `${tag}-vewButton`)
-  for(let d = 3; d < modder.cube.numDims; d++) {
-    newRadio(viewSec, `Dimension ${d}`, `${tag}-vew${d}`,
-      Array.from(Array(~~(modder.cube.dimSize/2)))
-        .map((_, i) => `Layer ${i}`),
-      tag)
-  }
-
-  viewSec.setHandler(function(views) {
-    let newLayers = this.getOptions()
-    newLayers.push(0)
-    views.forEach(view => {
-      view.layers = newLayers
-    })
-  }, modder, modder.views)
-}
-
+// helper method (for now; this should go in controller)
 function calcRotateOrientation(numDims, displayedChoice,
     undisplayedChoice, orientDirection) {
   let displayedDim = numDims-1-displayedChoice
@@ -203,18 +55,20 @@ function calcRotateOrientation(numDims, displayedChoice,
 /*
   Rotates the cube according to the options set on the modder
 */
-async function rotateCube(cube, controller) {
+async function rotateCube(controller, values) {
   // Put this in controller
-  cube.rotate(calcRotateOrientation(cube.numDims, ...this.getOptions()))
+  let cube = controller.cube
+  cube.rotate(calcRotateOrientation(cube.numDims, ...values))
   await controller.updateViews()
 }
 
 /*
   Twists the cube according to the options set on the modder
 */
-async function makeTwist(cube, controller) {
+async function makeTwist(controller, values) {
+  let cube = controller.cube
   let numDims = cube.numDims
-  let [sidePicked, twistDirection, layerPicked] = this.getOptions()
+  let [sidePicked, twistDirection, layerPicked] = values
   let baseFace = cube.orientation[0]
 
   let sideChoices = [numDims-2, numDims-1, 2*numDims-2, 2*numDims-1]
@@ -226,14 +80,33 @@ async function makeTwist(cube, controller) {
   await controller.applyTwist(baseFace, sideFace, twistFace, layerPicked)
 }
 
+async function changeLayers(controller, values) {
+  let newLayers = values
+  newLayers.push(0)
+  controller.views.forEach(view => {
+    view.layers = newLayers
+  })
+  await controller.updateViews()
+}
+
 export function createModder(cube, canvasId, tag) {
   let modder = new Modder(cube, canvasId, tag)
 
-  addOrientSection(modder, tag)
-  addTwistSection(modder, tag)
+  modder.addOption(createOption(cube, tag, 'orient'), 'orient')
+  modder.setHandler('orient', rotateCube)
+
+  modder.addOption(createOption(cube, tag, 'twist'), 'twist')
+  modder.setHandler('twist', makeTwist)
+
   if (cube.numDims > 3 && cube.dimSize > 3) {
-    addViewSection(modder, tag)
+    modder.addOption(createOption(cube, tag, 'layer'), 'layer')
+    modder.setHandler('layer', changeLayers)
   }
+
+  modder.addOption(createOption(cube, tag, 'option'), 'option')
+  modder.setHandler('option', (controller, values) => {
+    console.log(controller, inputs)
+  })
 
   modder.update()
   return modder
