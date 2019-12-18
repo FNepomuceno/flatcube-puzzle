@@ -7,8 +7,7 @@ class Modder {
     this.controller = createController(cube)
     this.canvas = document.getElementById(canvasId)
     this.views = new Map()
-    this.options = new Map() // corresponds with orient, twist, ...
-    // and contains the inputs and buttons
+    this.options = new Map()
   }
 
   addOption(option, type) {
@@ -21,9 +20,19 @@ class Modder {
     this.controller.addView(view.view)
   }
 
-  update() {
-    let { orientation, numDims } = this.controller.cube
-    // TODO: Fix labels for displayed and undisplayed dimensions
+  async update() {
+    for (const [_, option] of this.options) {
+      option.update(option.node, this.controller)
+    }
+
+    for (const [_, view] of this.views) {
+      await view.setCells()
+    }
+  }
+
+  setUpdate(type, fn=()=>0) {
+    let option = this.options.get(type)
+    option.setUpdate(fn)
   }
 
   setHandler(type, cb=()=>0, ...args) {
@@ -31,10 +40,7 @@ class Modder {
     let button = option.node.getElementsByTagName('button')[0]
     button.addEventListener('click', async () => {
       await cb(this.controller, option.poll())
-
-      this.views.forEach(view => {
-        view.setCells()
-      })
+      await this.update()
     })
   }
 }
@@ -94,6 +100,25 @@ export function createModder(cube, canvasId, tag) {
 
   modder.addOption(createOption(cube, tag, 'orient'), 'orient')
   modder.setHandler('orient', rotateCube)
+  modder.setUpdate('orient', (node, controller) => {
+    let chosenLabels = Array.from(
+      node.childNodes[1].getElementsByTagName('label')
+    )
+    let unchosenLabels = Array.from(
+      node.childNodes[2].getElementsByTagName('label')
+    )
+    let { numDims, orientation } = controller.cube
+    let directions = ['Left/Right', 'Top/Bottom']
+
+    for (const [i, label] of chosenLabels.entries()) {
+      label.innerHTML = orientation[numDims-1-i] + '/'
+        + orientation[2*numDims-1-i] + ' (' + directions[i] + ')'
+    }
+
+    for (const [i, label] of unchosenLabels.entries()) {
+      label.innerHTML = orientation[numDims-1-(i+2)]
+    }
+  })
 
   modder.addOption(createOption(cube, tag, 'twist'), 'twist')
   modder.setHandler('twist', makeTwist)

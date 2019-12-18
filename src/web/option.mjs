@@ -157,6 +157,7 @@ class Option {
   constructor(opt, tag, name) {
     this.name = name
     this.node = generateOptionDom(opt, tag, this.name)
+    this.updateFn = () => 0
   }
 
   poll() {
@@ -170,6 +171,14 @@ class Option {
       }
     })
     return values
+  }
+
+  setUpdate(fn) {
+    this.updateFn = fn
+  }
+
+  update(...args) {
+    this.updateFn(...args)
   }
 }
 
