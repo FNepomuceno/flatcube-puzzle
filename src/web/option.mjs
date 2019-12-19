@@ -82,19 +82,19 @@ const otherOptions = {
       name: 'Choose Category',
       inputType: 'radio',
       inputId: 'optC',
-      inputChoices: ['File', 'History']
-    },
-    {
-      name: 'File',
-      inputType: 'radio',
-      inputId: 'optF',
-      inputChoices: ['Reset', 'Load', 'Save']
+      inputChoices: ['History', 'File']
     },
     {
       name: 'History',
       inputType: 'radio',
       inputId: 'optH',
       inputChoices: ['Undo', 'Redo', 'To Beginning', 'To End']
+    },
+    {
+      name: 'File',
+      inputType: 'radio',
+      inputId: 'optF',
+      inputChoices: ['Reset', 'Load', 'Save']
     }
   ],
   submitName: 'Apply',
