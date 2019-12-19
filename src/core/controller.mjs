@@ -36,6 +36,7 @@ class Controller {
     }
 
     await this.updateViews()
+    this.history.setScramble(twists)
 
     function nextFace(curFace=2*numDims) {
       let newFace = Math.floor((2*numDims-1)*Math.random())

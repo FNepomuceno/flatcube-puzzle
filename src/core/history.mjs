@@ -7,6 +7,14 @@ class History {
   constructor() {
     this.twists = []
     this.moveCount = 0
+
+    this.scramble = []
+    this.scrambleTurns = 0
+  }
+
+  setScramble(twists) {
+    this.scrambleTurns = twists.length
+    this.scramble = twists
   }
 
   canUndo() {

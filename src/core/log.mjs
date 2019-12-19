@@ -1,6 +1,29 @@
 import { completeTwistAction } from './twist.mjs'
 
-export function inputTwists(twistIdArray) {
+export function outputLog(controller) {
+  let { cube, history } = controller
+  let configLayout = [
+    cube.numDims,
+    cube.dimSize,
+    history.scrambleTurns,
+    history.moveCount
+  ]
+
+  let header = 'Flat Cube Puzzle'
+  let headerConfig = configLayout.join(' ')
+  let scrambleConfig = outputTwists(history.scramble)
+  let separator = '---'
+  let twistHistory = outputTwists(history.twists)
+
+  let lines = [header, headerConfig, '']
+  lines = lines.concat(scrambleConfig)
+  lines.push(separator)
+  lines = lines.concat(twistHistory)
+
+  return lines
+}
+
+function inputTwists(twistIdArray) {
   let twistArray = []
   for (const twistId of twistIdArray) {
     let values = twistId.split('-').map(n => +n)
@@ -9,10 +32,9 @@ export function inputTwists(twistIdArray) {
   return twistArray
 }
 
-export function outputTwists(history) {
-  let { twists } = history
+function outputTwists(twists) {
   let twistStrings = twists.map(t => t.id)
 
-  return twistStrings.join('\n')
+  return twistStrings
 }
 
