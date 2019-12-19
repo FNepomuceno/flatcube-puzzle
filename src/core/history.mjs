@@ -12,6 +12,27 @@ class History {
     this.scrambleTurns = 0
   }
 
+  // this should probably be made async
+  // if updating the cubes of all the objects is a problem
+  reset() {
+    // truncate history
+    this.twists.splice(this.moveCount)
+
+    // generate twists for cube to use to reset
+    let moves = this.scramble.concat(this.twists)
+    moves = moves.map(twist => invertTwist(twist))
+    moves = moves.reverse()
+
+    // reset twists and scramble
+    this.twists = []
+    this.moveCount = 0
+
+    this.scramble = []
+    this.scrambleTurns = 0
+
+    return moves
+  }
+
   setScramble(twists) {
     this.scrambleTurns = twists.length
     this.scramble = twists

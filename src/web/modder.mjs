@@ -137,8 +137,8 @@ export function createModder(cube, canvasId, tag) {
   modder.addOption(createOption(cube, tag, 'option'), 'option')
   modder.setHandler('option', async (controller, values) => {
     const options = [
-      ['reset', 'load', 'save'],
-      ['undo', 'redo', 'begin', 'end']
+      ['undo', 'redo', 'begin', 'end'],
+      ['reset', 'load', 'save']
     ]
     let type = options[values[0]][values[values[0]+1]]
     const actions = new Map([
@@ -156,6 +156,9 @@ export function createModder(cube, canvasId, tag) {
         document.body.appendChild(elem);
         elem.click();
         document.body.removeChild(elem);
+      }],
+      ['reset', async (controller) => {
+        await controller.reset()
       }]
     ])
     let action = actions.get(type) ||

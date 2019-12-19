@@ -20,6 +20,14 @@ class Controller {
     this.canMove = true
   }
 
+  async reset() {
+    let twists = this.history.reset()
+    for (const twist of twists) {
+      await this.cube.twist(twist)
+    }
+    await this.updateViews()
+  }
+
   async generateScramble(scrambleTurns=0) {
     this.scrambleTurns = scrambleTurns
     this.scramble = []
