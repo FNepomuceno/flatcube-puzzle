@@ -24,8 +24,8 @@ class Twist {
   */
   getId() {
     let idArray = [
-      this.facePicked, this.layerPicked,
-      ...this.orAction.slice(0, this.numDims)
+      this.facePicked, this.layerPicked, this.dimSize,
+      ...this.orAction.slice(1, this.numDims-1)
     ]
     return idArray.map(x => x.toString()).join('-')
   }
@@ -75,7 +75,7 @@ export function randomTwist(numDims=3, dimSize=3, facePicked=-1,
   let numFlips = 0
   let canBeDefault = true
 
-  for(let i = numDims-1; i > 0; i--) {
+  for (let i = numDims-1; i > 0; i--) {
     let numChoices = (i !== 2 && canBeDefault)? 2*i: 2*i-1
     let minChoice = (i !== 2 && canBeDefault)? 0: 1
     let choice = minChoice+Math.floor(numChoices*Math.random())
@@ -92,7 +92,7 @@ export function randomTwist(numDims=3, dimSize=3, facePicked=-1,
 
   let numSwaps = 0
   let sortingArray = Array.from(faces)
-  for(let i = 0; i < numDims; i++) {
+  for (let i = 0; i < numDims; i++) {
     let index = sortingArray[i]
     while(index != i) {
       [sortingArray[i], sortingArray[index]] =
@@ -151,5 +151,40 @@ export function cycleOrientation(numDims, faceFrom, faceTo) {
   })
 
   return orientation
+}
+
+export function completeTwistAction(values) {
+  let [face, layer, dimSize, ...orPieces] = values
+  let numDims = orPieces.length+2
+
+  // Calculate dimensions for number of swaps
+  let dimensions = orPieces.map(n => n%numDims)
+  let pieceSum = dimensions.reduce((a, b) => a+b, 0)
+  let missingDim = (numDims*numDims-numDims)/2 - pieceSum
+  dimensions.push(missingDim)
+
+  // Calculate number of swaps
+  let numSwaps = 0
+  for (let i = 1; i < numDims; i++) {
+    while (dimensions[i-1] !== i) {
+      let curVal = dimensions[i-1]
+      let nextVal = dimensions[curVal-1]
+      dimensions[curVal-1] = curVal
+      dimensions[i-1] = nextVal
+      numSwaps++
+      if (numSwaps > 50) throw Error('infinite loop')
+    }
+  }
+  numSwaps = orPieces.reduce((a, b) => a + (b >= numDims), numSwaps)
+
+  // Calculate orAction
+  let orAction = Array.from(orPieces)
+  orAction.unshift(0)
+  orAction.push(missingDim + (numSwaps % 2)*numDims)
+  orAction = orAction.concat(orAction.map(d => (d+numDims)%(2*numDims)))
+
+  // Make twist from parameters
+  let twist = createTwist(numDims, dimSize, face, layer, orAction)
+  return twist
 }
 
