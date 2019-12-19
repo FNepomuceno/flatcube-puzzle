@@ -2,7 +2,8 @@ import { invert, conjugate } from './orientation.mjs'
 import {
   createTwist,
   cycleOrientation,
-  defaultOrientation
+  defaultOrientation,
+  randomTwist
 } from './twist.mjs'
 import { createHistory } from './history.mjs'
 
@@ -14,7 +15,33 @@ class Controller {
     this.cube = cube
     this.views = []
     this.history = createHistory()
+    this.scrambleTurns = 0
+    this.scramble = []
     this.canMove = true
+  }
+
+  async generateScramble(scrambleTurns=0) {
+    this.scrambleTurns = scrambleTurns
+    this.scramble = []
+
+    let { numDims, dimSize } = this.cube
+    let facePicked = 2*numDims
+    let twists = Array.from(Array(scrambleTurns)).map(() => {
+      facePicked = nextFace(facePicked)
+      return randomTwist(numDims, dimSize, facePicked)
+    })
+
+    for (let i = 0; i < scrambleTurns; i++) {
+      await this.cube.twist(twists[i])
+    }
+
+    await this.updateViews()
+
+    function nextFace(curFace=2*numDims) {
+      let newFace = Math.floor((2*numDims-1)*Math.random())
+      if (newFace >= curFace) newFace++
+      return newFace
+    }
   }
 
   async applyTwist(baseFace, sideFace, twistFace, layerPicked) {

@@ -10,6 +10,11 @@ class Modder {
     this.options = new Map()
   }
 
+  async scramble(scrambleTurns=0) {
+    await this.controller.generateScramble(scrambleTurns)
+    await this.update()
+  }
+
   addOption(option, type) {
     this.options.set(type, option)
     this.canvas.appendChild(option.node)
