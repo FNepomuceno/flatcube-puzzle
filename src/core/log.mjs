@@ -20,6 +20,8 @@ export function outputLog(controller) {
   lines.push(separator)
   lines = lines.concat(twistHistory)
 
+  lines = lines.map(line => line+'\n')
+
   return lines
 }
 

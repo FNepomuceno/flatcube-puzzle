@@ -1,5 +1,6 @@
 import { axisRotation } from '../core/util.mjs'
 import { createController } from '../core/controller.mjs'
+import { outputLog } from '../core/log.mjs'
 import { createOption } from './option.mjs'
 
 class Modder {
@@ -144,7 +145,18 @@ export function createModder(cube, canvasId, tag) {
       ['undo', (controller) => controller.undoMove(1)],
       ['redo', (controller) => controller.redoMove(1)],
       ['begin', (controller) => controller.undoMove()],
-      ['end', (controller) => controller.redoMove()]
+      ['end', (controller) => controller.redoMove()],
+      ['save', (controller) => {
+        let filename = 'fcp.log'
+        let blob = new Blob(outputLog(controller), { type: 'text/plain' })
+
+        let elem = window.document.createElement('a');
+        elem.href = window.URL.createObjectURL(blob);
+        elem.download = filename;
+        document.body.appendChild(elem);
+        elem.click();
+        document.body.removeChild(elem);
+      }]
     ])
     let action = actions.get(type) ||
       (() => { throw Error('Move not implemented') })
