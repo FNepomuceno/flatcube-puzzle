@@ -1,10 +1,10 @@
 import { invert, conjugate } from './orientation.mjs'
 import {
   createTwist,
-  invertTwist,
   cycleOrientation,
   defaultOrientation
 } from './twist.mjs'
+import { createHistory } from './history.mjs'
 
 /*
   Controller that works independently of representation
@@ -13,7 +13,7 @@ class Controller {
   constructor(cube) {
     this.cube = cube
     this.views = []
-    this.history = new History()
+    this.history = createHistory()
     this.canMove = true
   }
 
@@ -65,51 +65,6 @@ class Controller {
 
   updateViews() {
     return Promise.all(this.views.map(view => { view.update() }))
-  }
-}
-
-/*
-  Tracks the move history throughout the 'solve'
-*/
-class History {
-  constructor() {
-    this.twists = []
-    this.moveCount = 0
-  }
-
-  canUndo() {
-    return this.moveCount > 0
-  }
-
-  canRedo() {
-    return this.moveCount < this.twists.length
-  }
-
-  undo() {
-    let twist = invertTwist(this.twists[this.moveCount-1])
-
-    if (this.canUndo()) this.moveCount--
-    else return null
-
-    return twist
-  }
-
-  redo() {
-    let twist = this.twists[this.moveCount]
-
-    if (this.canRedo()) this.moveCount++
-    else return null
-
-    return twist
-  }
-
-  move(twist) {
-    // truncate history
-    this.twists.splice(this.moveCount)
-
-    // add new move on top
-    this.twists.push(twist)
-    this.moveCount++
   }
 }
 
