@@ -1,6 +1,6 @@
 import { compose } from './orientation.mjs'
 import { defaultOrientation } from './twist.mjs'
-import { createSlice } from './cube.mjs'
+import { createSlice } from './slice.mjs'
 
 class View {
   constructor(cube, orientation, layers) {
