@@ -150,15 +150,36 @@ export function createModder(cube, canvasId, tag) {
         let filename = 'fcp.log'
         let blob = new Blob(outputLog(controller), { type: 'text/plain' })
 
-        let elem = window.document.createElement('a');
-        elem.href = window.URL.createObjectURL(blob);
-        elem.download = filename;
-        document.body.appendChild(elem);
-        elem.click();
-        document.body.removeChild(elem);
+        let elem = window.document.createElement('a')
+        elem.href = window.URL.createObjectURL(blob)
+        elem.download = filename
+        document.body.appendChild(elem)
+        elem.click()
+        document.body.removeChild(elem)
       }],
       ['reset', async (controller) => {
         await controller.reset()
+      }],
+      ['load', async (controller) => {
+        let file = await new Promise(resolve => {
+          let elem = window.document.createElement('input')
+          elem.type = 'file'
+          elem.addEventListener('change', () => {
+            resolve(elem.files[0])
+          })
+
+          document.body.appendChild(elem)
+          elem.click()
+          document.body.removeChild(elem)
+        })
+        let contents = await new Promise(resolve => {
+          let reader = new FileReader()
+          reader.onload = function(evt) {
+            resolve(evt.target.result.split('\n'))
+          }
+          reader.readAsText(file)
+        })
+        // Then process the file contents here
       }]
     ])
     let action = actions.get(type) ||
