@@ -1,6 +1,6 @@
 import { axisRotation } from '../core/util.mjs'
 import { createController } from '../core/controller.mjs'
-import { outputLog } from '../core/log.mjs'
+import { outputLog, inputLog } from '../core/log.mjs'
 import { createOption } from './option.mjs'
 
 class Modder {
@@ -165,6 +165,7 @@ export function createModder(cube, canvasId, tag) {
           let elem = window.document.createElement('input')
           elem.type = 'file'
           elem.addEventListener('change', () => {
+            console.log('loading puzzle')
             resolve(elem.files[0])
           })
 
@@ -172,14 +173,8 @@ export function createModder(cube, canvasId, tag) {
           elem.click()
           document.body.removeChild(elem)
         })
-        let contents = await new Promise(resolve => {
-          let reader = new FileReader()
-          reader.onload = function(evt) {
-            resolve(evt.target.result.split('\n'))
-          }
-          reader.readAsText(file)
-        })
-        // Then process the file contents here
+        await inputLog(controller, file)
+        console.log('puzzle loaded')
       }]
     ])
     let action = actions.get(type) ||

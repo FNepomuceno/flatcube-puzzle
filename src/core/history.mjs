@@ -12,6 +12,18 @@ class History {
     this.scrambleTurns = 0
   }
 
+  importHistory(twists, moveCount, scramble, scrambleTurns) {
+    if (moveCount > twists.length || scrambleTurns !== scramble.length) {
+      throw new Error('Invalid History')
+    }
+
+    this.twists = twists
+    this.moveCount = moveCount
+
+    this.scramble = scramble
+    this.scrambleTurns = scrambleTurns
+  }
+
   // this should probably be made async
   // if updating the cubes of all the objects is a problem
   reset() {

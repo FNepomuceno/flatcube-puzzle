@@ -15,9 +15,21 @@ class Controller {
     this.cube = cube
     this.views = []
     this.history = createHistory()
-    this.scrambleTurns = 0
-    this.scramble = []
     this.canMove = true
+  }
+
+  async importPuzzle(numDims, dimSize, twists, moveCount,
+      scramble, scrambleTurns) {
+    // (currently) incompatible puzzle configuration
+    if(this.cube.numDims !== numDims || this.cube.dimSize !== dimSize) {
+      throw new Error('Incompatible Puzzle Configuration')
+    }
+    await this.reset()
+    this.history.importHistory(twists, moveCount, scramble, scrambleTurns)
+    for (const twist of scramble.concat(twists.slice(0, moveCount))) {
+      await this.cube.twist(twist)
+    }
+    await this.updateViews()
   }
 
   async reset() {
@@ -29,9 +41,6 @@ class Controller {
   }
 
   async generateScramble(scrambleTurns=0) {
-    this.scrambleTurns = scrambleTurns
-    this.scramble = []
-
     let { numDims, dimSize } = this.cube
     let facePicked = 2*numDims
     let twists = Array.from(Array(scrambleTurns)).map(() => {
